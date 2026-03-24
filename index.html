@@ -126,4 +126,131 @@
             <button onclick="show('sc-dep')" class="nav-btn text-2xl text-slate-400"><i class="fas fa-university"></i></button>
             <button onclick="show('sc-team')" class="nav-btn text-2xl text-slate-400"><i class="fas fa-users"></i></button>
             <button onclick="show('sc-wit')" class="nav-btn text-2xl text-slate-400"><i class="fas fa-wallet"></i></button>
-            <button onclick=
+            <button onclick="logout()" class="text-2xl text-red-400"><i class="fas fa-power-off"></i></button>
+        </nav>
+    </div>
+
+    <script>
+        // FIREBASE CORE - CONFIGURAÇÃO FORÇADA
+        const config = { apiKey: "AIzaSyC3SurEz7aLcHG4yBUq5zrGBPOb2mvLpZ4", authDomain: "fir-6e9ec.firebaseapp.com", databaseURL: "https://fir-6e9ec-default-rtdb.firebaseio.com/", projectId: "fir-6e9ec", storageBucket: "fir-6e9ec.firebasestorage.app", messagingSenderId: "579697818964", appId: "1:579697818964:web:c05f427bd4460697431cc1" };
+        if (!firebase.apps.length) firebase.initializeApp(config);
+        const db = firebase.database();
+
+        let saldo = 0; let vipAtivo = null; let authMode = 'login'; let ganhoAcumuladoDia = 0; let ultimaAtivacao = 0;
+        const vips = [{id:1, p:5000}, {id:2, p:15000}, {id:3, p:35000}, {id:4, p:80000}, {id:5, p:150000}, {id:6, p:300000}, {id:7, p:500000}, {id:8, p:750000}, {id:9, p:1000000}, {id:10, p:1220000}];
+
+        function show(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
+            document.getElementById(id).classList.add('active-screen');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.replace('text-blue-600', 'text-slate-400'));
+            event.currentTarget.classList.replace('text-slate-400', 'text-blue-600');
+        }
+
+        function conectarApp(u) {
+            localStorage.setItem('ms_logged','true'); localStorage.setItem('ms_user', u);
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            document.getElementById('wa-float').classList.remove('hidden');
+            document.getElementById('u-display').innerText = "ID: " + u;
+            document.getElementById('my-ref-id').innerText = u;
+
+            db.ref('users/' + u).on('value', snap => {
+                const d = snap.val();
+                if(d) {
+                    saldo = d.saldo || 0; vipAtivo = d.vip_id || null;
+                    ganhoAcumuladoDia = d.ganho_dia || 0;
+                    ultimaAtivacao = d.ultima_ativacao || 0;
+                    document.getElementById('balance').innerText = saldo.toLocaleString('pt-AO', {minimumFractionDigits:2}) + " KZ";
+                    document.getElementById('vip-status').innerText = vipAtivo ? "MICROSOFT VIP " + vipAtivo : "SEM PLANO";
+                    if(d.iban) { document.getElementById('user-iban').value = d.iban; document.getElementById('user-name').value = d.nome_completo; document.getElementById('withdraw-fields').classList.remove('hidden'); }
+                    renderVips();
+                }
+            });
+
+            db.ref('depositos_pendentes').orderByChild('user').equalTo(u).on('value', snap => {
+                let h = ''; snap.forEach(s => { const i = s.val(); h += `<div class="bg-white p-3 rounded-xl border flex justify-between text-[10px] font-black italic"><span>Depósito: ${i.valor} KZ</span><span class="text-blue-600">${i.status}</span></div>`; });
+                document.getElementById('dep-history').innerHTML = h;
+            });
+
+            db.ref('saques_pendentes').orderByChild('user').equalTo(u).on('value', snap => {
+                let h = ''; snap.forEach(s => { const i = s.val(); h += `<div class="bg-white p-3 rounded-xl border flex justify-between text-[10px] font-black italic"><span>Saque: ${i.valor_bruto} KZ</span><span class="text-orange-600">${i.status}</span></div>`; });
+                document.getElementById('wit-history').innerHTML = h;
+            });
+
+            db.ref('users').orderByChild('indicado_por').equalTo(u).on('value', snap => { document.getElementById('team-count').innerText = snap.numChildren(); });
+        }
+
+        function handleAuth() {
+            const u = document.getElementById('uid').value; const s = document.getElementById('upass').value;
+            const r = document.getElementById('uref').value || "Nenhum";
+            if(!u || s.length < 4) return alert("Insere dados válidos!");
+            
+            document.getElementById('status-msg').innerText = "A validar conexão...";
+
+            db.ref('users/' + u).once('value', (snap) => {
+                const d = snap.val();
+                if(authMode === 'reg') {
+                    if(snap.exists()) { alert("Número já registado!"); }
+                    else { db.ref('users/' + u).set({ pass: s, saldo: 0, vip_id: null, ganho_dia: 0, ultima_ativacao: Date.now(), indicado_por: r }).then(() => { alert("Conta Ativada! Entra agora."); setAuth('login'); }); }
+                } else {
+                    if(d && d.pass === s) conectarApp(u); else alert("Número ou Senha incorretos!");
+                }
+                document.getElementById('status-msg').innerText = "";
+            }, (err) => {
+                alert("ERRO CRÍTICO: Firebase recusou acesso. Verifica as REGRAS no painel do Firebase!");
+                console.error(err);
+            });
+        }
+
+        function renderVips() {
+            let h = ''; vips.forEach(v => {
+                const isA = vipAtivo == v.id;
+                h += `<tr class="border-b"><td class="p-3 text-blue-700 italic">VIP ${v.id}</td><td class="p-3">${v.p.toLocaleString()}</td><td class="p-3 text-green-600">+${(v.p * 0.033).toFixed(0)}</td><td class="p-3 text-center"><button onclick="ativarVIP(${v.id})" class="px-3 py-1 rounded-lg text-[9px] ${isA?'bg-green-100 text-green-600 font-black':'bg-blue-600 text-white'}">${isA?'ATIVO':'ATIVAR'}</button></td></tr>`;
+            });
+            document.getElementById('vips-table-body').innerHTML = h;
+        }
+
+        function ativarVIP(id) {
+            const u = localStorage.getItem('ms_user'); const v = vips.find(x => x.id === id);
+            if(vipAtivo == id || saldo < v.p) return alert("Saldo insuficiente ou VIP já ativo!");
+            if(vipAtivo !== null) { saldo += vips.find(x => x.id == vipAtivo).p; }
+            saldo -= v.p; vipAtivo = id;
+            db.ref('users/' + u).update({ saldo: saldo, vip_id: vipAtivo, ultima_ativacao: Date.now(), ganho_dia: 0 });
+            alert("Sucesso!");
+        }
+
+        setInterval(() => {
+            if(vipAtivo) {
+                const u = localStorage.getItem('ms_user'); const v = vips.find(x => x.id == vipAtivo);
+                const ganhoMaxPorDia = v.p * 0.033;
+                if(ganhoAcumuladoDia < ganhoMaxPorDia) {
+                    const taxaSec = ganhoMaxPorDia / 86400; saldo += taxaSec; ganhoAcumuladoDia += taxaSec;
+                    document.getElementById('balance').innerText = saldo.toLocaleString('pt-AO', {minimumFractionDigits:2}) + " KZ";
+                    if(Math.floor(Date.now()/1000) % 30 === 0) db.ref('users/' + u).update({ saldo: saldo, ganho_dia: ganhoAcumuladoDia });
+                }
+            }
+        }, 1000);
+
+        function enviarDeposito() {
+            const v = parseFloat(document.getElementById('dep-val').value); const f = document.getElementById('dep-file');
+            if(v < 5000 || f.files.length === 0) return alert("Min. 5000 KZ + Foto!");
+            const r = new FileReader(); r.onload = (e) => { db.ref('depositos_pendentes').push({ user: localStorage.getItem('ms_user'), valor: v, comprovativo: e.target.result, status: 'Pendente', data: Date.now() }).then(() => { alert("Enviado para análise!"); location.reload(); }); };
+            r.readAsDataURL(f.files[0]);
+        }
+
+        function calcularTaxa() { const v = parseFloat(document.getElementById('wit-val').value) || 0; document.getElementById('tax-val').innerText = (v * 0.10).toLocaleString(); document.getElementById('net-val').innerText = (v * 0.90).toLocaleString(); }
+        function execSaque() { const v = parseFloat(document.getElementById('wit-val').value); if(v < 500 || v > saldo) return alert("Erro no valor!"); db.ref('saques_pendentes').push({ user: localStorage.getItem('ms_user'), valor_bruto: v, valor_liquido: (v*0.9), status: 'Pendente', data: Date.now(), iban: document.getElementById('user-iban').value, titular: document.getElementById('user-name').value }).then(() => { saldo -= v; db.ref('users/' + localStorage.getItem('ms_user')).update({ saldo: saldo }); alert("Pendente!"); }); }
+        function saveIban() { db.ref('users/' + localStorage.getItem('ms_user')).update({ iban: document.getElementById('user-iban').value, nome_completo: document.getElementById('user-name').value }).then(() => alert("Vínculo OK!")); }
+        function setBank(b) { const i = document.getElementById('bank-info'); i.classList.remove('hidden'); i.innerText = b==='BFA' ? "BANCO BFA\nIBAN: 0006 0000 0774 9006 301 94\nTITULAR: ASSIS BUSH SESSA" : "BANCO BAI\nIBAN: 0040 0000 0927 0667 101 41\nTITULAR: ASSIS BUSH SESSA"; }
+        function setAuth(m) { authMode = m; document.getElementById('t-log').className = m==='login'?'flex-1 pb-2 text-blue-600 border-b-2 border-blue-600':'flex-1 pb-2'; document.getElementById('t-reg').className = m==='reg'?'flex-1 pb-2 text-blue-600 border-b-2 border-blue-600':'flex-1 pb-2'; }
+        function logout() { localStorage.clear(); location.reload(); }
+        function copyRefLink() { const link = window.location.origin + window.location.pathname + "?ref=" + localStorage.getItem('ms_user'); navigator.clipboard.writeText(link).then(() => alert("Copiado!")); }
+
+        window.onload = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if(urlParams.get('ref')) { document.getElementById('uref').value = urlParams.get('ref'); setAuth('reg'); }
+            if(localStorage.getItem('ms_logged')==='true') conectarApp(localStorage.getItem('ms_user'));
+        };
+    </script>
+</body>
+                            </html>
