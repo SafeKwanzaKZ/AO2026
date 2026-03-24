@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SISTEMA CENTRAL - ZAKWORK</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        body { background: #020617; color: #f8fafc; font-family: sans-serif; }
+        .card { background: #1e293b; border: 1px solid #334155; border-radius: 1rem; }
+        .btn-action { transition: all 0.2s; text-transform: uppercase; font-weight: 900; font-size: 10px; border-radius: 8px; }
+        .btn-action:active { transform: scale(0.95); }
+    </style>
+</head>
+<body class="p-4 pb-20">
+
+    <header class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 border-b border-slate-800 pb-4">
+        <div>
+            <h1 class="text-2xl font-black text-blue-500 italic uppercase">Gestão Zakwork</h1>
+            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Painel de Controlo Total (2026)</p>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="location.reload()" class="bg-slate-800 p-3 rounded-xl border border-slate-700 hover:bg-slate-700"><i class="fas fa-sync"></i></button>
+        </div>
+    </header>
+
+    <div class="grid lg:grid-cols-2 gap-6">
+        
+        <section class="card p-5">
+            <h2 class="text-blue-400 font-black mb-4 uppercase text-xs flex items-center gap-2">
+                <i class="fas fa-file-invoice-dollar"></i> Validação de Depósitos
+            </h2>
+            <div id="list-dep" class="space-y-4 max-h-[500px] overflow-y-auto pr-2 text-xs italic text-slate-500 text-center">A carregar...</div>
+        </section>
+
+        <section class="card p-5">
+            <h2 class="text-orange-400 font-black mb-4 uppercase text-xs flex items-center gap-2">
+                <i class="fas fa-wallet"></i> Solicitações de Saque
+            </h2>
+            <div id="list-wit" class="space-y-4 max-h-[500px] overflow-y-auto pr-2 text-xs italic text-slate-500 text-center">Aguardando...</div>
+        </section>
+
+        <section class="card p-5 lg:col-span-2 overflow-hidden">
+            <h2 class="text-purple-400 font-black mb-4 uppercase text-xs flex items-center gap-2">
+                <i class="fas fa-users-cog"></i> Gestão de Utilizadores & Recuperação
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-[11px] font-bold min-w-[800px]">
+                    <thead class="bg-slate-900/50 text-slate-500 uppercase">
+                        <tr>
+                            <th class="p-3">ID / Telefone</th>
+                            <th class="p-3">Senha Atual</th>
+                            <th class="p-3">Saldo (KZ)</th>
+                            <th class="p-3">Dados Bancários (IBAN)</th>
+                            <th class="p-3 text-center">Ações Rápidas</th>
+                        </tr>
+                    </thead>
+                    <tbody id="list-users" class="divide-y divide-slate-800"></tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <div id="m-img" class="fixed inset-0 bg-black/95 z-[100] hidden flex items-center justify-center p-4" onclick="this.classList.add('hidden')">
+        <img id="img-full" src="" class="max-w-full max-h-full shadow-2xl rounded-lg">
+    </div>
+
+    <script>
+        const fb = { apiKey: "AIzaSyC3SurEz7aLcHG4yBUq5zrGBPOb2mvLpZ4", authDomain: "fir-6e9ec.firebaseapp.com", databaseURL: "https://fir-6e9ec-default-rtdb.firebaseio.com/", projectId: "fir-6e9ec", storageBucket: "fir-6e9ec.firebasestorage.app", messagingSenderId: "579697818964", appId: "1:579697818964:web:c05f427bd4460697431cc1" };
+        firebase.initializeApp(fb); const db = firebase.database();
+
+        // --- 1. GESTÃO DE DEPÓSITOS ---
+        db.ref('depositos_pendentes').on('value', snap => {
+            const list = document.getElementById('list-dep'); list.innerHTML = '';
+            snap.forEach(s => {
+                const d = s.val(); if(d.status === 'Pendente') {
+                    list.innerHTML += `
+                    <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                        <div class="flex justify-between font-black text-white mb-2"><span>${d.user}</span><span>${d.valor} KZ</span></div>
+                        <img src="${d.comprovativo}" class="w-full h-24 object-cover rounded-lg mb-3 cursor-pointer border border-slate-600" onclick="vImg('${d.comprovativo}')">
+                        <div class="flex gap-1">
+                            <button onclick="admDep('${s.key}','${d.user}',${d.valor},'Aprovado')" class="flex-1 bg-green-600 p-2 btn-action">Aprovar</button>
+                            <button onclick="admDep('${s.key}','${d.user}',0,'Recusado')" class="flex-1 bg-red-600 p-2 btn-action">Rejeitar</button>
+                        </div>
+                    </div>`;
+                }
+            });
+            if(!list.innerHTML) list.innerHTML = "Sem depósitos pendentes.";
+        });
+
+        // --- 2. GESTÃO DE SAQUES ---
+        db.ref('saques_pendentes').on('value', snap => {
+            const list = document.getElementById('list-wit'); list.innerHTML = '';
+            snap.forEach(s => {
+                const d = s.val(); if(d.status === 'Pendente') {
+                    list.innerHTML += `
+                    <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                        <div class="flex justify-between font-black text-orange-400 mb-2"><span>${d.user}</span><span>${d.valor_liquido} KZ</span></div>
+                        <div class="bg-black/30 p-2 rounded text-[9px] font-mono text-slate-300 mb-3 border-l-2 border-orange-500">
+                            IBAN: ${d.iban || 'NÃO VINCULADO'}<br>TITULAR: ${d.titular || 'N/A'}
+                        </div>
+                        <div class="flex gap-1">
+                            <button onclick="admWit('${s.key}','Pago')" class="flex-1 bg-blue-600 p-2 btn-action">Confirmar Pago</button>
+                            <button onclick="admWit('${s.key}','Recusado','${d.user}',${d.valor_bruto})" class="flex-1 bg-red-600 p-2 btn-action">Rejeitar/Devolver</button>
+                        </div>
+                    </div>`;
+                }
+            });
+            if(!list.innerHTML) list.innerHTML = "Sem saques pendentes.";
+        });
+
+        // --- 3. GESTÃO DE USUÁRIOS (RECUPERAR SENHA, SALDO, BANIR) ---
+        db.ref('users').on('value', snap => {
+            const list = document.getElementById('list-users'); list.innerHTML = '';
+            snap.forEach(s => {
+                const u = s.val(); if(u.banido) return; // Ocultar banidos da lista principal
+                list.innerHTML += `
+                <tr class="hover:bg-white/5 transition-all">
+                    <td class="p-3 text-blue-400">${s.key}</td>
+                    <td class="p-3 text-yellow-500 font-mono">${u.pass || '----'}</td>
+                    <td class="p-3 text-green-500">${(u.saldo || 0).toLocaleString()} KZ</td>
+                    <td class="p-3 text-[9px] text-slate-400 font-mono">${u.iban || 'Sem IBAN'} <br> <span class="text-white">${u.nome_completo || ''}</span></td>
+                    <td class="p-3 space-x-1 flex justify-center">
+                        <button onclick="editSaldo('${s.key}',${u.saldo||0})" class="bg-slate-700 p-2 btn-action" title="Add/Reduzir Saldo"><i class="fas fa-coins"></i></button>
+                        <button onclick="editPass('${s.key}')" class="bg-blue-600 p-2 btn-action" title="Mudar Senha"><i class="fas fa-key"></i></button>
+                        <button onclick="banUser('${s.key}')" class="bg-red-600 p-2 btn-action" title="Banir"><i class="fas fa-user-slash"></i></button>
+                    </td>
+                </tr>`;
+            });
+        });
+
+        // --- FUNÇÕES DE AÇÃO ---
+        function admDep(id, u, v, st) { 
+            if(st === 'Aprovado') db.ref('users/'+u+'/saldo').transaction(s => (s||0)+v);
+            db.ref('depositos_pendentes/'+id).update({status: st}).then(() => alert("Depósito "+st));
+        }
+
+        function admWit(id, st, u, v) {
+            if(st === 'Recusado') db.ref('users/'+u+'/saldo').transaction(s => (s||0)+v);
+            db.ref('saques_pendentes/'+id).update({status: st}).then(() => alert("Saque "+st));
+        }
+
+        function editSaldo(u, s) { 
+            const n = prompt("SALDO ATUAL: "+s+" KZ\nInsira o NOVO SALDO TOTAL:", s);
+            if(n !== null) db.ref('users/'+u).update({saldo: parseFloat(n)});
+        }
+
+        function editPass(u) {
+            const p = prompt("Nova senha para o usuário "+u+":");
+            if(p) db.ref('users/'+u).update({pass: p}).then(() => alert("Senha alterada!"));
+        }
+
+        function banUser(u) {
+            if(confirm("Desejas BANIR permanentemente "+u+"?")) {
+                db.ref('users/'+u).update({banido: true, saldo: 0}).then(() => alert("Usuário Banido!"));
+            }
+        }
+
+        function vImg(src) { document.getElementById('img-full').src = src; document.getElementById('m-img').classList.remove('hidden'); }
+    </script>
+</body>
+</html>
