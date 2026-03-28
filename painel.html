@@ -3,173 +3,269 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chevron Admin | Gestão em Nuvem</title>
+    <title>Chevron Admin | Painel Central</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
         :root { --ch-blue: #0054a6; --ch-red: #ed1c24; --success: #28a745; --bg: #f4f7f6; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: var(--bg); padding: 15px; }
+        
+        /* TELA DE LOGIN ADMIN */
+        #adminLock { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: var(--ch-blue); z-index: 9999; display: flex; 
+            align-items: center; justify-content: center; flex-direction: column; color: white;
+        }
+        .lock-card { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 350px; text-align: center; color: #333; }
+
+        /* PAINEL (ESCONDIDO POR PADRÃO) */
+        #adminContent { display: none; }
+
         .header { background: var(--ch-blue); color: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
         .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
         h2 { color: var(--ch-blue); font-size: 14px; text-transform: uppercase; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-bottom: 10px; outline: none; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-bottom: 10px; outline: none; font-size: 14px; }
         .btn { padding: 12px; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 12px; }
         .btn-blue { background: var(--ch-blue); width: 100%; }
         .btn-green { background: var(--success); flex: 1; }
         .btn-red { background: var(--ch-red); flex: 1; }
+        .btn-black { background: #333; width: 100%; margin-top: 5px; }
+        
         .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .info-item { background: #f9f9f9; padding: 8px; border-radius: 8px; border: 1px solid #eee; }
         .info-item label { display: block; font-size: 9px; color: #888; font-weight: bold; }
         .info-item span { font-size: 13px; font-weight: 700; }
-        .user-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; font-size: 13px; cursor: pointer; }
+        
+        .user-row { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; font-size: 13px; cursor: pointer; align-items: center; }
         .user-row:hover { background: #f0f7ff; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+
         .pending-card { background: white; border: 1px solid #eee; padding: 15px; border-radius: 12px; margin-bottom: 15px; border-top: 4px solid var(--ch-red); }
-        .pending-card img { width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; margin: 10px 0; background: #eee; }
+        .pending-card img { width: 100%; max-height: 250px; object-fit: contain; border-radius: 8px; margin: 10px 0; background: #eee; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div><strong>CHEVRON ADMIN CLOUD</strong><br><small>Controle Global Angola</small></div>
-        <div style="text-align:right;"><small>TOTAL CLIENTES</small><br><strong id="countU">0</strong></div>
+    <div id="adminLock">
+        <div class="lock-card">
+            <h2 style="border:none;">🔒 ACESSO RESTRITO</h2>
+            <p style="font-size: 12px; margin-bottom: 15px; color: #666;">Introduza a chave mestre para continuar</p>
+            <input type="password" id="masterKey" placeholder="Senha do Administrador">
+            <button class="btn btn-blue" onclick="verificarAcesso()">ENTRAR NO PAINEL</button>
+        </div>
     </div>
 
-    <div class="card">
-        <h2>🔍 Buscar Usuário (Número)</h2>
-        <div style="display:flex; gap:5px;">
-            <input type="number" id="inpSearch" placeholder="943692688">
-            <button class="btn btn-blue" style="width:80px;" onclick="buscar()">BUSCAR</button>
+    <div id="adminContent">
+        <div class="header">
+            <div><strong>CHEVRON ADMIN CLOUD</strong><br><small>Painel de Controlo Angola</small></div>
+            <div style="text-align:right;"><small>TOTAL CLIENTES</small><br><strong id="countU">0</strong></div>
         </div>
 
-        <div id="painelUser" style="display:none; margin-top:15px; padding-top:15px; border-top: 1px dashed #ccc;">
-            <div class="info-grid">
-                <div class="info-item"><label>SALDO</label><span id="resSaldo">0 Kz</span></div>
-                <div class="info-item"><label>SENHA</label><span id="resPass">---</span></div>
-            </div>
-            <input type="number" id="valAjuste" placeholder="Valor Kwanza">
+        <div class="card">
+            <h2>🔍 Gestão de Conta</h2>
             <div style="display:flex; gap:5px;">
-                <button class="btn btn-green" onclick="ajustar('add')">ADICIONAR (+)</button>
-                <button class="btn btn-red" onclick="ajustar('sub')">REMOVER (-)</button>
+                <input type="number" id="inpSearch" placeholder="Número (ex: 943692688)">
+                <button class="btn btn-blue" style="width:80px;" onclick="buscar()">BUSCAR</button>
+            </div>
+            
+            <div id="painelUser" style="display:none; margin-top:15px; padding-top:15px; border-top: 1px dashed #ccc;">
+                <div class="info-grid">
+                    <div class="info-item"><label>SALDO ATUAL</label><span id="resSaldo">0 Kz</span></div>
+                    <div class="info-item"><label>CONVIDADOS</label><span id="resConvidados">0 Membros</span></div>
+                    <div class="info-item"><label>ESTADO</label><span id="resStatus">Ativo</span></div>
+                    <div class="info-item"><label>IBAN REGISTADO</label><span id="resIban">Nenhum</span></div>
+                </div>
+
+                <label style="font-size: 11px; font-weight: bold; color: var(--ch-blue);">AJUSTAR SALDO:</label>
+                <input type="number" id="valAjuste" placeholder="Valor Kwanza">
+                <div style="display:flex; gap:5px; margin-bottom: 15px;">
+                    <button class="btn btn-green" onclick="ajustar('add')">ADICIONAR (+)</button>
+                    <button class="btn btn-red" onclick="ajustar('sub')">REMOVER (-)</button>
+                </div>
+
+                <label style="font-size: 11px; font-weight: bold; color: var(--ch-blue);">SEGURANÇA E ACESSO:</label>
+                <input type="text" id="newPass" placeholder="Nova Senha">
+                <button class="btn btn-blue" onclick="mudarSenha()">ATUALIZAR SENHA</button>
+                <button id="btnBlock" class="btn btn-black" onclick="toggleBlock()">BLOQUEAR USUÁRIO</button>
             </div>
         </div>
-    </div>
 
-    <div class="card">
-        <h2>📥 Depósitos Pendentes</h2>
-        <div id="listaRecargas"></div>
-    </div>
+        <div class="card">
+            <h2 style="border-bottom-color: var(--success);">📥 Depósitos Pendentes</h2>
+            <div id="listaRecargas"></div>
+        </div>
 
-    <div class="card">
-        <h2>👥 Todos os Clientes na Nuvem</h2>
-        <div id="todosUsers"></div>
+        <div class="card">
+            <h2 style="border-bottom-color: orange;">💸 Pedidos de Saque</h2>
+            <div id="listaSaques"></div>
+        </div>
+
+        <div class="card">
+            <h2>👥 Lista de Clientes</h2>
+            <div id="todosUsers" style="max-height: 300px; overflow-y: auto; border: 1px solid #eee; border-radius: 10px;"></div>
+        </div>
     </div>
 
     <script>
-        // CONFIGURAÇÃO DO SEU FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyC3SurEz7aLcHG4yBUq5zrGBPOb2mvLpZ4",
             authDomain: "fir-6e9ec.firebaseapp.com",
             databaseURL: "https://fir-6e9ec-default-rtdb.firebaseio.com",
             projectId: "fir-6e9ec"
         };
-
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         let target = "";
+        let isBlocked = false;
 
-        // ESCUTAR TODOS OS USUÁRIOS EM TEMPO REAL
+        // VERIFICAÇÃO DE SENHA MESTRE
+        function verificarAcesso() {
+            const pass = document.getElementById('masterKey').value;
+            if(pass === "ABS..943") {
+                document.getElementById('adminLock').style.display = 'none';
+                document.getElementById('adminContent').style.display = 'block';
+                iniciarMonitoramento();
+            } else {
+                alert("❌ Chave de Acesso Incorreta!");
+            }
+        }
+
+        function iniciarMonitoramento() {
+            monitorarUsuarios(); monitorarRecargas(); monitorarSaques();
+        }
+
         function monitorarUsuarios() {
             db.ref('contas').on('value', (snapshot) => {
                 const data = snapshot.val();
                 const tU = document.getElementById('todosUsers');
                 tU.innerHTML = "";
                 let count = 0;
-
                 if (data) {
                     for (let tel in data) {
                         count++;
                         let user = data[tel];
-                        tU.innerHTML += `
-                            <div class="user-row" onclick="selecionar('${tel}')">
-                                <span>+244 ${tel}</span>
-                                <strong>${parseFloat(user.saldo || 0).toLocaleString()} Kz</strong>
-                            </div>`;
+                        let corStatus = user.bloqueado ? 'red' : 'var(--success)';
+                        tU.innerHTML += `<div class="user-row" onclick="selecionar('${tel}')">
+                            <span><i class="status-dot" style="background:${corStatus}"></i> +244 ${tel}</span>
+                            <strong>${parseFloat(user.saldo || 0).toLocaleString()} Kz</strong>
+                        </div>`;
                     }
                 }
                 document.getElementById('countU').innerText = count;
             });
         }
 
-        // ESCUTAR RECARGAS
-        function monitorarRecargas() {
-            db.ref('pendencias/recargas').on('value', (snapshot) => {
-                const list = document.getElementById('listaRecargas');
-                list.innerHTML = "";
-                const data = snapshot.val();
-                if (!data) {
-                    list.innerHTML = "<p style='font-size:11px; color:#999;'>Sem depósitos pendentes.</p>";
-                    return;
-                }
-                for (let id in data) {
-                    let r = data[id];
-                    list.innerHTML += `
-                        <div class="pending-card">
-                            <strong>CLIENTE: +244 ${r.tel}</strong><br>
-                            <span>Valor: ${parseFloat(r.valor).toLocaleString()} Kz</span><br>
-                            <img src="${r.foto}" onclick="window.open(this.src)">
-                            <div style="display:flex; gap:5px;">
-                                <button class="btn btn-green" onclick="aprovarR('${id}', '${r.tel}', ${r.valor})">APROVAR</button>
-                                <button class="btn btn-red" onclick="rejeitarR('${id}')">REJEITAR</button>
-                            </div>
-                        </div>`;
-                }
-            });
-        }
-
-        function selecionar(t) { document.getElementById('inpSearch').value = t; buscar(); }
-
         function buscar() {
             target = document.getElementById('inpSearch').value.trim();
-            db.ref('contas/' + target).once('value').then((snap) => {
-                const u = snap.val();
+            if(!target) return;
+            db.ref('contas/' + target).once('value').then(s => {
+                const u = s.val();
                 if (u) {
                     document.getElementById('painelUser').style.display = 'block';
                     document.getElementById('resSaldo').innerText = parseFloat(u.saldo || 0).toLocaleString() + " Kz";
-                    document.getElementById('resPass').innerText = u.senha;
-                } else { alert("Não encontrado no banco de dados!"); }
+                    document.getElementById('newPass').value = u.senha;
+                    db.ref('contas').once('value').then(all => {
+                        let convidados = 0;
+                        all.forEach(child => { if(child.val().padrinho === target) convidados++; });
+                        document.getElementById('resConvidados').innerText = convidados + " Membros";
+                    });
+                    isBlocked = u.bloqueado || false;
+                    document.getElementById('resStatus').innerText = isBlocked ? "BLOQUEADO" : "ATIVO";
+                    document.getElementById('resStatus').style.color = isBlocked ? "red" : "green";
+                    document.getElementById('btnBlock').innerText = isBlocked ? "DESBLOQUEAR USUÁRIO" : "BLOQUEAR USUÁRIO";
+                    document.getElementById('btnBlock').style.background = isBlocked ? "var(--success)" : "#333";
+                    if(u.historico_saques) {
+                        let lastS = Object.values(u.historico_saques).pop();
+                        document.getElementById('resIban').innerText = lastS.iban || "Nenhum";
+                    } else { document.getElementById('resIban').innerText = "Sem registos"; }
+                } else alert("Usuário não encontrado!");
             });
         }
 
         function ajustar(tipo) {
             let v = parseFloat(document.getElementById('valAjuste').value);
-            if (!v || !target) return alert("Erro nos dados!");
-            
-            db.ref('contas/' + target).once('value').then(s => {
-                let saldoAtual = parseFloat(s.val().saldo || 0);
-                let novo = tipo === 'add' ? saldoAtual + v : saldoAtual - v;
-                db.ref('contas/' + target + '/saldo').set(novo).then(() => {
-                    alert("Saldo Atualizado na Nuvem!");
-                    buscar();
+            if (!v || !target) return alert("Erro no valor!");
+            db.ref('contas/' + target + '/saldo').once('value').then(s => {
+                let novo = tipo === 'add' ? (parseFloat(s.val()) + v) : (parseFloat(s.val()) - v);
+                db.ref('contas/' + target + '/saldo').set(novo);
+                alert("Saldo Ajustado!");
+                buscar();
+            });
+        }
+
+        function mudarSenha() {
+            let p = document.getElementById('newPass').value;
+            db.ref('contas/' + target + '/senha').set(p);
+            alert("Senha atualizada!");
+        }
+
+        function toggleBlock() {
+            db.ref('contas/' + target + '/bloqueado').set(!isBlocked);
+            buscar();
+        }
+
+        function selecionar(t) { document.getElementById('inpSearch').value = t; buscar(); }
+
+        function monitorarRecargas() {
+            db.ref('pendencias/recargas').on('value', snap => {
+                const list = document.getElementById('listaRecargas');
+                list.innerHTML = "";
+                const data = snap.val();
+                if (!data) return list.innerHTML = "<p style='font-size:11px; color:#999;'>Sem depósitos pendentes.</p>";
+                for (let id in data) {
+                    let r = data[id];
+                    list.innerHTML += `<div class="pending-card" style="border-top-color:var(--success)">
+                        <strong>+244 ${r.tel}</strong> | Valor: ${parseFloat(r.valor).toLocaleString()} Kz
+                        <img src="${r.foto}" onclick="window.open(this.src)">
+                        <div style="display:flex; gap:5px;">
+                            <button class="btn btn-green" onclick="decidirR('${id}', '${r.tel}', ${r.valor}, 'ok')">APROVAR</button>
+                            <button class="btn btn-red" onclick="decidirR('${id}', '', 0, 'no')">REJEITAR</button>
+                        </div>
+                    </div>`;
+                }
+            });
+        }
+
+        function monitorarSaques() {
+            db.ref('pendencias/saques').on('value', snap => {
+                const list = document.getElementById('listaSaques');
+                list.innerHTML = "";
+                const data = snap.val();
+                if (!data) return list.innerHTML = "<p style='font-size:11px; color:#999;'>Sem saques pendentes.</p>";
+                for (let id in data) {
+                    let s = data[id];
+                    list.innerHTML += `<div class="pending-card" style="border-top-color: orange;">
+                        <strong>SAQUE: +244 ${s.tel}</strong><br>
+                        <span style="font-size:11px;">IBAN: <b>${s.iban}</b></span><br>
+                        <span>Pagar: <b style="color:var(--success)">${parseFloat(s.valor).toLocaleString()} Kz</b></span>
+                        <div style="display:flex; gap:5px; margin-top:10px;">
+                            <button class="btn btn-green" onclick="finalizarSaque('${id}', 'pago', '${s.tel}')">PAGO</button>
+                            <button class="btn btn-red" onclick="finalizarSaque('${id}', 'rejeitar', '${s.tel}', ${s.valorBruto})">REJEITAR</button>
+                        </div>
+                    </div>`;
+                }
+            });
+        }
+
+        function decidirR(id, tel, valor, acao) {
+            if (acao === 'ok') {
+                db.ref('contas/' + tel + '/saldo').once('value').then(s => {
+                    db.ref('contas/' + tel + '/saldo').set(parseFloat(s.val() || 0) + valor);
                 });
-            });
+            }
+            db.ref('pendencias/recargas/' + id).remove();
         }
 
-        function aprovarR(id, tel, valor) {
-            db.ref('contas/' + tel).once('value').then(s => {
-                let sAtual = parseFloat(s.val().saldo || 0);
-                db.ref('contas/' + tel + '/saldo').set(sAtual + valor);
-                db.ref('pendencias/recargas/' + id).remove();
-                alert("Dinheiro enviado para o cliente!");
-            });
+        function finalizarSaque(id, acao, tel, valorBruto) {
+            if (acao === 'rejeitar') {
+                db.ref('contas/' + tel + '/saldo').once('value').then(s => {
+                    db.ref('contas/' + tel + '/saldo').set(parseFloat(s.val() || 0) + valorBruto);
+                });
+            }
+            db.ref('contas/'+tel+'/historico_saques/'+id+'/status').set(acao === 'pago' ? "Pago" : "Rejeitado");
+            db.ref('pendencias/saques/' + id).remove();
         }
-
-        function rejeitarR(id) {
-            if(confirm("Rejeitar este comprovativo?")) db.ref('pendencias/recargas/' + id).remove();
-        }
-
-        monitorarUsuarios();
-        monitorarRecargas();
     </script>
 </body>
 </html>
