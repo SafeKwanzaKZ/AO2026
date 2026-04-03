@@ -1,253 +1,364 @@
+                
 <!DOCTYPE html>
-<html lang="pt-AO">
+<html lang="pt-ao">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SafeKwanza | Investimento</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LemonInvest - Oficial</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background: #fff; color: #000; -webkit-tap-highlight-color: transparent; }
-        .page { display: none; min-height: 100vh; }
-        .page.active { display: flex; flex-direction: column; }
-        .font-black-italic { font-weight: 900; font-style: italic; }
-        #drawer { transform: translateX(-100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 3000; }
-        #drawer.open { transform: translateX(0); }
-        #overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 2500; }
-        #toast { visibility: hidden; min-width: 280px; background: #000; color: #fff; text-align: center; border-radius: 20px; padding: 18px; position: fixed; z-index: 5000; left: 50%; top: 25px; transform: translateX(-50%); border: 2px solid #0052FF; font-weight: 800; }
-        #toast.show { visibility: visible; animation: slideIn 0.4s forwards, slideOut 0.4s 2.6s forwards; }
-        @keyframes slideIn { from { top: -100px; opacity: 0; } to { top: 25px; opacity: 1; } }
-        @keyframes slideOut { from { top: 25px; opacity: 1; } to { top: -100px; opacity: 0; } }
+        :root {
+            --verde-limao: #32CD32; --verde-escuro: #1e801e; --amarelo-citrico: #e6ff00;
+            --fundo: #f0f4f1; --whatsapp: #25D366;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--fundo); margin: 0; padding: 20px; padding-bottom: 120px; }
+
+        /* Notificação */
+        #lemonNotify { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: white; border-left: 6px solid var(--verde-limao); padding: 15px 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 10001; font-weight: bold; min-width: 280px; text-align: center; }
+
+        /* Login */
+        #telaLogin { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--verde-escuro), #004d00); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
+        .box-login { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 400px; text-align: center; }
+        .box-login input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #ddd; border-radius: 12px; outline: none; }
+
+        /* Header */
+        header { background: linear-gradient(135deg, var(--verde-escuro), #004d00); color: white; padding: 30px 20px; border-radius: 20px; text-align: center; margin-bottom: 25px; position: relative; }
+        .user-badge { position: absolute; top: 15px; right: 20px; background: rgba(255,255,255,0.15); padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
+        .saldo-valor { font-size: 2.2rem; font-weight: 800; color: var(--amarelo-citrico); display: block; }
+
+        /* VIP Cards */
+        .card-vip { background: white; border-radius: 20px; padding: 20px; border: 1px solid #e0eec0; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .btn-ativar { background: var(--verde-escuro); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .btn-ativo { background: #ccc; color: #666; cursor: not-allowed; }
+
+        /* Menu Inferior */
+        .nav-bottom { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--verde-escuro); padding: 15px; display: flex; justify-content: center; z-index: 1000; }
+        .btn-menu-open { background: var(--amarelo-citrico); color: var(--verde-escuro); border: none; padding: 12px 40px; border-radius: 30px; font-weight: 900; cursor: pointer; }
+
+        /* Overlay Menu */
+        .overlay { height: 0; width: 100%; position: fixed; z-index: 8000; bottom: 0; left: 0; background: rgba(15, 60, 15, 0.98); overflow: hidden; transition: 0.4s; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .overlay a { padding: 15px; font-size: 1.2rem; color: white; text-decoration: none; width: 100%; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+
+        /* Modais */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9000; justify-content: center; align-items: center; padding: 20px; }
+        .modal-content { background: white; padding: 25px; border-radius: 20px; width: 100%; max-width: 400px; text-align: center; max-height: 85vh; overflow-y: auto; }
+        .item-extrato { text-align: left; padding: 10px; border-bottom: 1px solid #eee; font-size: 0.85rem; }
+        
+        .btn-principal { width: 100%; padding: 15px; background: var(--verde-escuro); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+
+        /* Botão WhatsApp Flutuante */
+        .btn-whatsapp { position: fixed; bottom: 90px; right: 20px; background: var(--whatsapp); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 1000; text-decoration: none; font-size: 30px; }
     </style>
 </head>
 <body>
 
-    <div id="toast">Notificação</div>
-    <div id="overlay" onclick="toggleMenu()"></div>
+<div id="lemonNotify">Mensagem</div>
 
-    <div id="authPage" class="page active items-center justify-center p-6 bg-slate-50">
-        <div class="w-full max-w-sm bg-white p-10 rounded-[45px] shadow-2xl border border-slate-100 text-center">
-            <h1 class="text-4xl font-black-italic italic tracking-tighter uppercase mb-2">SAFE<span class="text-[#0052FF]">KWANZA</span></h1>
-            <p class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 italic mb-10">Angola Digital Assets</p>
-            <div class="flex mb-8 bg-slate-100 p-1.5 rounded-2xl">
-                <button id="tabL" onclick="switchAuth('login')" class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all bg-white shadow-sm text-[#0052FF]">Entrar</button>
-                <button id="tabR" onclick="switchAuth('reg')" class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all text-slate-400">Registo</button>
-            </div>
-            <div class="space-y-4">
-                <input type="tel" id="uPhone" placeholder="Terminal (9xxxxxxxx)" class="w-full p-5 bg-slate-50 rounded-2xl border-2 border-transparent focus:border-[#0052FF] outline-none font-bold">
-                <input type="password" id="uPass" placeholder="Senha" class="w-full p-5 bg-slate-50 rounded-2xl border-2 border-transparent focus:border-[#0052FF] outline-none font-bold">
-                <button onclick="handleAuth()" class="w-full bg-black text-white p-5 rounded-3xl font-black uppercase text-[11px] italic">Aceder Carteira</button>
-            </div>
-        </div>
+<div id="telaLogin">
+    <div class="box-login">
+        <h2 style="color:var(--verde-escuro)">🍋 LemonInvest</h2>
+        <input type="number" id="telInput" placeholder="Telemóvel">
+        <input type="password" id="passInput" placeholder="Palavra-passe">
+        <button class="btn-principal" id="btnAcao">ENTRAR</button>
+        <p id="toggleAuth" style="margin-top:20px; font-size:0.85rem; color:var(--verde-escuro); cursor:pointer; font-weight: bold;">Criar nova conta</p>
     </div>
+</div>
 
-    <div id="dashPage" class="page">
-        <div id="drawer" class="fixed top-0 left-0 h-full w-72 bg-black text-white p-10 flex flex-col">
-            <h2 class="text-2xl font-black-italic text-[#0052FF] mb-12 italic tracking-tighter">MENU</h2>
-            <nav class="flex-1 space-y-7">
-                <button onclick="nav('vips')" class="block font-black text-xs uppercase italic">Mineração VIP</button>
-                <button onclick="nav('recharge')" class="block font-black text-xs uppercase italic text-emerald-400">Recarregar</button>
-                <button onclick="nav('withdraw')" class="block font-black text-xs uppercase italic text-red-400">Sacar Lucros</button>
-                <button onclick="nav('team')" class="block font-black text-xs uppercase italic text-amber-400">Afiliados (10%)</button>
-                <button onclick="nav('history')" class="block font-black text-xs uppercase italic text-blue-400">Histórico</button>
-            </nav>
-            <button onclick="logout()" class="w-full bg-red-600 p-5 rounded-2xl font-black text-[10px] uppercase italic">Sair</button>
-        </div>
+<header>
+    <div class="user-badge">ID: <span id="uID">-----</span></div>
+    <span style="font-size: 0.8rem;">O seu saldo</span>
+    <span class="saldo-valor" id="uSaldo">0,00 Kz</span>
+    <small id="uPlanoAtual">A carregar...</small>
+</header>
 
-        <header class="bg-black p-12 pt-16 text-center border-b-[10px] border-[#0052FF] relative">
-            <button onclick="toggleMenu()" class="absolute top-8 left-8 text-white bg-white/10 p-3 rounded-xl">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="3" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-            </button>
-            <p class="text-[#0052FF] text-[10px] font-black uppercase tracking-[0.5em] mb-4 italic">Balanço Acumulado</p>
-            <h3 class="text-5xl font-black-italic text-white italic tracking-tighter"><span id="balanceDisp">0,00</span> <span class="text-xl text-blue-600">Kz</span></h3>
-            <div id="miningBadge" class="hidden mt-8 bg-emerald-500/10 border border-emerald-500/30 px-5 py-2.5 rounded-full inline-flex items-center gap-3">
-                <span id="activeVipLabel" class="text-emerald-400 font-black text-[9px] uppercase italic"></span>
-            </div>
-        </header>
+<div id="listaVips"></div>
 
-        <main class="p-6 pb-28 max-w-lg mx-auto w-full flex-1">
-            <div id="vipsSect" class="space-y-4"><div id="vipGrid" class="space-y-4"></div></div>
-            
-            <div id="rechargeSect" class="hidden">
-                <div class="bg-white border-4 border-black p-8 rounded-[40px] text-center">
-                    <h2 class="font-black italic text-2xl mb-6 uppercase">Recarga</h2>
-                    <select id="bankChoice" onchange="updateBank()" class="w-full p-5 bg-slate-50 border-2 rounded-2xl font-black text-xs mb-4 outline-none">
-                        <option value="">BANCO...</option><option value="BAI">BAI</option><option value="BFA">BFA</option>
-                    </select>
-                    <div id="bankDetails" class="hidden mb-6 p-6 bg-slate-900 rounded-3xl text-blue-400 text-[11px] font-mono italic text-left">
-                        IBAN:<br><span id="ibanVal" class="text-white font-black text-sm block mt-2"></span>
-                    </div>
-                    <input type="number" id="depAmount" placeholder="Valor (Kz)" class="w-full p-5 border-2 rounded-2xl font-black mb-4 outline-none">
-                    <p class="text-[9px] font-black text-slate-400 mb-2 uppercase italic">Anexar Comprovativo (Foto):</p>
-                    <input type="file" id="depFile" accept="image/*" class="text-[10px] mb-8 block w-full">
-                    <button onclick="handleDeposit()" class="w-full bg-[#0052FF] text-white p-6 rounded-3xl font-black uppercase text-[11px] italic">Confirmar Depósito</button>
-                </div>
-            </div>
+<a href="https://chat.whatsapp.com/GIDLfslZsgXAG2no7gJoEC?mode=gi_t" class="btn-whatsapp" target="_blank">📲</a>
 
-            <div id="withdrawSect" class="hidden">
-                <div class="bg-white border-4 border-black p-8 rounded-[40px] text-center">
-                    <h2 class="font-black italic text-2xl text-red-600 mb-6 uppercase">Saque</h2>
-                    <input type="text" id="wIban" placeholder="IBAN (21 dígitos)" maxlength="25" class="w-full p-5 bg-slate-50 border-2 rounded-2xl font-black mb-4 font-mono text-xs outline-none">
-                    <input type="number" id="wAmount" oninput="calcW()" placeholder="Valor (Mín. 1.500 Kz)" class="w-full p-5 bg-slate-50 border-2 rounded-2xl font-black mb-4 outline-none">
-                    <div id="feeBox" class="p-5 bg-red-50 rounded-3xl border border-red-100 hidden mb-6 text-[10px] font-black uppercase">
-                        <div class="flex justify-between"><span>Taxa (10%):</span><span id="taxVal">0 Kz</span></div>
-                        <div class="flex justify-between mt-2 text-[12px]"><span>Receberá:</span><span class="text-emerald-600" id="finalVal">0 Kz</span></div>
-                    </div>
-                    <button onclick="handleWithdraw()" class="w-full bg-black text-white p-6 rounded-3xl font-black uppercase text-[11px] italic">Sacar Agora</button>
-                </div>
-            </div>
+<nav class="nav-bottom">
+    <button class="btn-menu-open" onclick="toggleNav(true)">☰ MENU PRINCIPAL</button>
+</nav>
 
-            <div id="teamSect" class="hidden">
-                <div class="bg-black p-10 rounded-[45px] text-white text-center shadow-2xl border-b-8 border-[#0052FF]">
-                    <h2 class="text-2xl font-black-italic text-[#0052FF] mb-4 uppercase italic tracking-tighter">CONVITES</h2>
-                    <div class="bg-white/10 p-5 rounded-2xl border border-white/20 mb-6">
-                        <p id="refLinkText" class="text-[10px] font-black text-blue-400 break-all"></p>
-                    </div>
-                    <button onclick="copyRefLink()" class="w-full bg-[#0052FF] text-white py-5 rounded-3xl font-black uppercase text-[11px] italic">Copiar Link</button>
-                </div>
-            </div>
+<div id="myNav" class="overlay">
+    <a href="javascript:void(0)" onclick="toggleNav(false)" style="font-size: 40px; color:var(--amarelo-citrico)">&times;</a>
+    <a href="#" id="btnColetar" style="background:var(--amarelo-citrico); color:black; font-weight: 900;">💹 RECOLHER LUCRO HOJE</a>
+    <a href="#" onclick="abrirModal('modalDep')">📥 DEPÓSITO</a>
+    <a href="#" onclick="abrirModal('modalSaque')">💸 LEVANTAMENTO</a>
+    <a href="#" id="btnAbrirExtrato">📜 MEU EXTRATO</a>
+    <a href="#" id="btnPartilhar" style="color:var(--amarelo-citrico)">🚀 CONVIDAR AMIGOS</a>
+    <a href="#" onclick="location.reload()" style="color:#ff4d4d">🚪 SAIR DA CONTA</a>
+</div>
 
-            <div id="historySect" class="hidden space-y-3"><div id="historyList" class="space-y-3"></div></div>
-        </main>
+<div id="modalDep" class="modal">
+    <div class="modal-content">
+        <h3>Fazer Depósito</h3>
+        <p style="font-size:0.85rem; text-align:left; background:#f5f5f5; padding:15px; border-radius:10px; line-height: 1.6;">
+            <b>BFA / BAI (AO06):</b><br>
+            0006 0000 2870 9134 3015 1<br><br>
+            <b>Via Express:</b><br>
+            <span style="color:var(--verde-escuro); font-weight:bold; font-size:1.1rem;">921 054 122</span>
+        </p>
+        <input type="number" id="valDep" placeholder="Valor (Mín. 500 Kz)" style="width:100%; padding:12px; margin:10px 0; border:1px solid #ddd; border-radius:8px;">
+        <label style="display:block; text-align:left; font-size:0.8rem; font-weight:bold; color:var(--verde-escuro)">Carregar Print do Comprovativo:</label>
+        <input type="file" id="imgDep" accept="image/*" style="width:100%; margin:10px 0;">
+        <button class="btn-principal" id="btnEnviarDep">ENVIAR AGORA</button>
+        <button onclick="fecharModal('modalDep')" style="border:none; background:none; color:#999; margin-top:15px;">Cancelar</button>
     </div>
+</div>
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyC3SurEz7aLcHG4yBUq5zrGBPOb2mvLpZ4",
-            authDomain: "fir-6e9ec.firebaseapp.com",
-            databaseURL: "https://fir-6e9ec-default-rtdb.firebaseio.com",
-            projectId: "fir-6e9ec",
-            storageBucket: "fir-6e9ec.firebasestorage.app",
-            messagingSenderId: "579697818964",
-            appId: "1:579697818964:web:aad151fcbe3989df431cc1"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+<div id="modalSaque" class="modal">
+    <div class="modal-content">
+        <h3>Levantamento</h3>
+        <p style="font-size: 0.75rem; color: #666; margin-bottom: 10px;">Taxa: 10% | Mínimo: 300 Kz</p>
+        <input type="text" id="saqueNome" placeholder="Nome do Titular" style="width:100%; padding:12px; margin:5px 0; border:1px solid #ddd; border-radius:8px;">
+        <input type="text" id="saqueIban" placeholder="IBAN (AO06...)" maxlength="25" style="width:100%; padding:12px; margin:5px 0; border:1px solid #ddd; border-radius:8px;">
+        <input type="number" id="valSaque" placeholder="Valor (Mín. 300 Kz)" style="width:100%; padding:12px; margin:5px 0; border:1px solid #ddd; border-radius:8px;">
+        <div id="previewTaxa" style="font-size:0.7rem; color:var(--verde-escuro); margin-bottom:10px; font-weight:bold;"></div>
+        <button class="btn-principal" id="btnEnviarSaque">SOLICITAR SAQUE</button>
+        <button onclick="fecharModal('modalSaque')" style="border:none; background:none; color:#999; margin-top:15px;">Cancelar</button>
+    </div>
+</div>
 
-        const VIP_DATA = [
-            { id: 1, name: "VIP 1", price: 5000, income: 225 },
-            { id: 2, name: "VIP 2", price: 15000, income: 675 },
-            { id: 3, name: "VIP 3", price: 50000, income: 2250 },
-            { id: 4, name: "VIP 4", price: 100000, income: 4500 },
-            { id: 5, name: "VIP 5", price: 250000, income: 11250 },
-            { id: 6, name: "VIP 6", price: 500000, income: 22500 }
-        ];
+<div id="modalExtrato" class="modal">
+    <div class="modal-content">
+        <h3>Histórico</h3>
+        <div id="listaExtrato"></div>
+        <button onclick="fecharModal('modalExtrato')" class="btn-principal">FECHAR</button>
+    </div>
+</div>
 
-        let user = null;
-        let authTab = 'login';
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getDatabase, ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
-        const savedPhone = localStorage.getItem('sk_logged_phone');
-        if(savedPhone) {
-            db.ref('users/' + savedPhone).once('value', snap => {
-                if(snap.exists()){ user = snap.val(); startApp(); }
-            });
-        }
-        renderVips();
+    const firebaseConfig = {
+        apiKey: "AIzaSyC3SurEz7aLcHG4yBUq5zrGBPOb2mvLpZ4",
+        databaseURL: "https://fir-6e9ec-default-rtdb.firebaseio.com",
+        projectId: "fir-6e9ec"
+    };
 
-        function handleAuth() {
-            const phone = document.getElementById('uPhone').value;
-            const pass = document.getElementById('uPass').value;
-            if(phone.length < 9) return showMsg("NÚMERO INVÁLIDO");
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-            db.ref('users/' + phone).once('value', snap => {
-                if(authTab === 'reg') {
-                    if(snap.exists()) return showMsg("NÚMERO JÁ REGISTADO");
-                    user = { phone, pass, balance: 1000, vipPrice: 0, dailyIncome: 0, lastUpdate: Date.now(), isBanned: false, history: { "h0": {type:'Bónus Inicial', val:1000, date:new Date().toLocaleString(), status:'OK'} } };
-                    saveCloud(); startApp();
-                } else {
-                    if(!snap.exists()) return showMsg("CONTA INEXISTENTE");
-                    const data = snap.val();
-                    if(data.isBanned) return showMsg("CONTA BLOQUEADA");
-                    if(data.pass !== pass) return showMsg("SENHA INCORRETA");
-                    user = data; startApp();
-                }
-            });
-        }
+    let user = null;
+    let modoLogin = true;
 
-        function startApp() {
-            localStorage.setItem('sk_logged_phone', user.phone);
-            document.getElementById('authPage').classList.remove('active');
-            document.getElementById('dashPage').classList.add('active');
+    // Captura o link de indicação na URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const refBy = urlParams.get('ref');
+    if(refBy) localStorage.setItem('lemon_referrer', refBy);
+
+    const VIPS = [
+        { id: 1, nome: 'Baby', custo: 3500, lucro: 157.50 },
+        { id: 2, nome: 'Júnior', custo: 15000, lucro: 675.00 },
+        { id: 3, nome: 'Galego', custo: 35000, lucro: 1575.00 },
+        { id: 4, nome: 'Siciliano', custo: 55000, lucro: 2475.00 },
+        { id: 5, nome: 'Imperial', custo: 100000, lucro: 5000.00 }
+    ];
+
+    function notify(m) {
+        const n = document.getElementById('lemonNotify');
+        n.innerText = m; n.style.display = 'block';
+        setTimeout(() => n.style.display = 'none', 3000);
+    }
+
+    document.getElementById('toggleAuth').onclick = () => {
+        modoLogin = !modoLogin;
+        document.getElementById('btnAcao').innerText = modoLogin ? "ENTRAR" : "CRIAR CONTA AGORA";
+        document.getElementById('toggleAuth').innerText = modoLogin ? "Criar nova conta" : "Já tenho conta";
+    };
+
+    document.getElementById('btnAcao').onclick = async () => {
+        const tel = document.getElementById('telInput').value;
+        const pas = document.getElementById('passInput').value;
+        if(tel.length < 9) return notify("Telemóvel inválido!");
+
+        if(modoLogin) {
+            const snap = await get(ref(db, 'users/' + tel));
+            if(snap.exists()) {
+                const u = snap.val();
+                if(u.pass === pas) {
+                    if(u.banido) return notify("Acesso bloqueado!");
+                    user = u;
+                    entrarNoApp();
+                } else notify("Senha incorreta!");
+            } else notify("Conta inexistente!");
+        } else {
+            const snap = await get(ref(db, 'users/' + tel));
+            if(snap.exists()) return notify("Número já registado!");
             
-            // LINK DE CONVITE ATUALIZADO PARA GITHUB PAGES
-            document.getElementById('refLinkText').innerText = `https://safekwanzakz.github.io/AO2026/index.html?ref=${user.phone}`;
+            // Salva quem indicou este novo usuário
+            const indicadoPor = localStorage.getItem('lemon_referrer');
             
-            updateUI();
-            setInterval(() => {
-                if(user.dailyIncome > 0) {
-                    const now = Date.now();
-                    user.balance += (user.dailyIncome / 86400) * ((now - user.lastUpdate) / 1000);
-                    user.lastUpdate = now;
-                    document.getElementById('balanceDisp').innerText = user.balance.toLocaleString('pt-AO', {minimumFractionDigits: 2});
-                    if(Math.floor(now/1000) % 15 === 0) saveCloud();
-                }
-            }, 1000);
-        }
-
-        function upgradeVip(id) {
-            const vip = VIP_DATA.find(v => v.id === id);
-            if (user.vipPrice > 0) {
-                user.balance += user.vipPrice;
-                showMsg(`REEMBOLSO DE ${user.vipPrice.toLocaleString()} Kz APLICADO!`, false);
-            }
-            if(user.balance < vip.price) {
-                if(user.vipPrice > 0) user.balance -= user.vipPrice;
-                return showMsg("SALDO INSUFICIENTE PARA ESTE VIP");
-            }
-            user.balance -= vip.price; 
-            user.vipPrice = vip.price; 
-            user.dailyIncome = vip.income; 
-            user.lastUpdate = Date.now();
-            if(!user.history) user.history = {};
-            user.history["v"+Date.now()] = {type: `Upgrade ${vip.name}`, val: vip.price, date: new Date().toLocaleString(), status: 'ATIVO'};
-            saveCloud(); 
-            updateUI(); 
-            showMsg(`UPGRADE PARA ${vip.name} CONCLUÍDO!`, false);
-        }
-
-        function handleDeposit() {
-            const v = parseFloat(document.getElementById('depAmount').value);
-            const file = document.getElementById('depFile').files[0];
-            if(isNaN(v) || v < 1000 || !file) return showMsg("DADOS EM FALTA");
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                if(!user.history) user.history = {};
-                user.history["d"+Date.now()] = { type: 'Depósito', val: v, date: new Date().toLocaleString(), status: 'PENDENTE', proof: e.target.result };
-                saveCloud(); showMsg("ENVIADO!", false); nav('history');
+            const novo = { 
+                tel, pass: pas, id: Math.floor(10000+Math.random()*89999), 
+                saldo: 0, planoAtual: null, ultima: "", extrato: [],
+                indicadoPor: indicadoPor || null
             };
-            reader.readAsDataURL(file);
+            await set(ref(db, 'users/' + tel), novo);
+            notify("Registado com sucesso!");
+            location.reload();
+        }
+    };
+
+    function entrarNoApp() {
+        document.getElementById('telaLogin').style.display = 'none';
+        onValue(ref(db, 'users/' + user.tel), (snap) => {
+            if(snap.exists()) {
+                user = snap.val();
+                atualizarTela();
+            }
+        });
+    }
+
+    function atualizarTela() {
+        document.getElementById('uID').innerText = user.id || "00000";
+        document.getElementById('uSaldo').innerText = (user.saldo || 0).toLocaleString('pt-AO') + " Kz";
+        document.getElementById('uPlanoAtual').innerText = user.planoAtual ? "Plano: " + user.planoAtual.nome : "Nenhum VIP Ativo";
+        renderVips();
+    }
+
+    function renderVips() {
+        const cont = document.getElementById('listaVips');
+        cont.innerHTML = VIPS.map(v => {
+            const isAtivo = user.planoAtual && user.planoAtual.nome === v.nome;
+            return `<div class="card-vip">
+                <div><b>VIP ${v.id} - ${v.nome}</b><br><small>${v.custo.toLocaleString()} Kz | +${v.lucro}/dia</small></div>
+                <button class="btn-ativar ${isAtivo ? 'btn-ativo' : ''}" onclick="${isAtivo ? '' : `ativarPlano('${v.nome}', ${v.custo}, ${v.lucro})`}">${isAtivo ? 'ATIVO' : 'ATIVAR'}</button>
+            </div>`;
+        }).join('');
+    }
+
+    // LÓGICA DE ATIVAÇÃO COM BÓNUS DE AFILIADO
+    window.ativarPlano = async (nome, custo, lucro) => {
+        if(user.saldo < custo) return notify("Saldo insuficiente!");
+        
+        let nSaldo = user.saldo - custo;
+        let nExt = user.extrato || [];
+        nExt.unshift({ idReq: Date.now(), data: new Date().toLocaleString(), desc: "Ativação VIP "+nome, valor: -custo, status: "Concluído" });
+        
+        // 1. Atualiza o usuário atual
+        await update(ref(db, 'users/'+user.tel), { saldo: nSaldo, planoAtual: {nome, custo, lucro}, extrato: nExt });
+
+        // 2. Lógica de Recompensa de 10% para o Padrinho
+        if(user.indicadoPor) {
+            const bonus = custo * 0.10;
+            const refSnap = await get(ref(db, 'users/' + user.indicadoPor));
+            if(refSnap.exists()) {
+                const padrinho = refSnap.val();
+                let pSaldo = (padrinho.saldo || 0) + bonus;
+                let pExt = padrinho.extrato || [];
+                pExt.unshift({ 
+                    idReq: Date.now(), 
+                    data: new Date().toLocaleString(), 
+                    desc: `Bónus Convite (Amigo VIP ${nome})`, 
+                    valor: bonus, 
+                    status: "Concluído" 
+                });
+                await update(ref(db, 'users/'+user.indicadoPor), { saldo: pSaldo, extrato: pExt });
+            }
         }
 
-        function handleWithdraw() {
-            const iban = document.getElementById('wIban').value;
-            const v = parseFloat(document.getElementById('wAmount').value);
-            if(iban.length < 21 || v < 1500 || v > user.balance) return showMsg("ERRO NOS DADOS");
-            user.balance -= v;
-            if(!user.history) user.history = {};
-            user.history["w"+Date.now()] = { type: 'Saque', val: v*0.9, bruto: v, date: new Date().toLocaleString(), status: 'PROCESSANDO', iban: iban };
-            saveCloud(); updateUI(); showMsg("SOLICITADO!", false); nav('history');
-        }
+        notify("VIP Ativado!");
+    };
 
-        function updateBank() {
-            const b = document.getElementById('bankChoice').value;
-            document.getElementById('bankDetails').classList.toggle('hidden', !b);
-            document.getElementById('ibanVal').innerText = b === 'BFA' ? '000600002870913430151' : '004000000927066710141';
+    // BOTÃO CONVIDAR AMIGOS
+    document.getElementById('btnPartilhar').onclick = () => {
+        const link = window.location.origin + window.location.pathname + "?ref=" + user.tel;
+        const msg = `🚀 Ganhe dinheiro diário na LemonInvest! Use meu link para ganhar bónus: ${link}`;
+        
+        if (navigator.share) {
+            navigator.share({ title: 'LemonInvest', text: msg, url: link });
+        } else {
+            navigator.clipboard.writeText(msg);
+            notify("Link copiado! Envie aos amigos.");
         }
+    };
 
-        function saveCloud() { if(user) db.ref('users/' + user.phone).set(user); }
-        function logout() { localStorage.removeItem('sk_logged_phone'); location.reload(); }
-        function copyRefLink() { navigator.clipboard.writeText(document.getElementById('refLinkText').innerText).then(() => showMsg("COPIADO!", false)); }
-        function showMsg(txt, isErr = true) { const t = document.getElementById('toast'); t.innerText = txt; t.style.borderColor = isErr ? '#f00' : '#0052FF'; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 3000); }
-        function switchAuth(tab) { authTab = tab; const isL = tab === 'login'; document.getElementById('tabL').className = isL ? "flex-1 py-3 rounded-xl text-[10px] font-black uppercase bg-white shadow-sm text-[#0052FF]" : "flex-1 py-3 rounded-xl text-[10px] font-black uppercase text-slate-400"; document.getElementById('tabR').className = !isL ? "flex-1 py-3 rounded-xl text-[10px] font-black uppercase bg-white shadow-sm text-[#0052FF]" : "flex-1 py-3 rounded-xl text-[10px] font-black uppercase text-slate-400"; }
-        function calcW() { const v = parseFloat(document.getElementById('wAmount').value); const box = document.getElementById('feeBox'); if(v >= 1500) { box.classList.remove('hidden'); document.getElementById('taxVal').innerText = (v*0.1).toLocaleString() + " Kz"; document.getElementById('finalVal').innerText = (v*0.9).toLocaleString() + " Kz"; } else box.classList.add('hidden'); }
-        function nav(s) { ['vips','recharge','withdraw','history','team'].forEach(x => { const el = document.getElementById(x+'Sect'); if(el) el.classList.toggle('hidden', x !== s); }); if(s === 'history') updateHistoryUI(); toggleMenu(); }
-        function toggleMenu() { document.getElementById('drawer').classList.toggle('open'); document.getElementById('overlay').style.display = document.getElementById('drawer').classList.contains('open') ? 'block' : 'none'; }
-        function updateUI() { if(!user) return; document.getElementById('balanceDisp').innerText = user.balance.toLocaleString('pt-AO', {minimumFractionDigits: 2}); const badge = document.getElementById('miningBadge'); badge.classList.toggle('hidden', user.dailyIncome <= 0); if(user.vipPrice > 0) document.getElementById('activeVipLabel').innerText = `VIP ${user.vipPrice.toLocaleString()} ATIVO`; }
-        function updateHistoryUI() { const list = user.history ? Object.values(user.history).reverse() : []; document.getElementById('historyList').innerHTML = list.map(h => `<div class="bg-white border p-5 rounded-3xl flex justify-between items-center italic"><div><p class="text-[10px] font-black uppercase">${h.type}</p><p class="text-[8px] font-bold text-slate-400">${h.date}</p></div><div class="text-right"><p class="font-black text-[#0052FF]">${h.val.toLocaleString()} Kz</p><p class="text-[8px] font-black uppercase text-emerald-500">${h.status}</p></div></div>`).join(''); }
-        function renderVips() { document.getElementById('vipGrid').innerHTML = VIP_DATA.map(v => `<div class="bg-white p-6 rounded-[35px] border-2 border-slate-50 flex items-center justify-between shadow-md"><div><h4 class="text-[9px] font-black uppercase text-slate-400 italic">${v.name}</h4><p class="text-xl font-black italic">${v.price.toLocaleString()} Kz</p><p class="text-[8px] font-black text-emerald-500 uppercase">+${v.income} Kz/dia</p></div><button onclick="upgradeVip(${v.id})" class="bg-black text-white px-7 py-4 rounded-2xl font-black text-[9px] uppercase italic">Ativar</button></div>`).join(''); }
-    </script>
+    document.getElementById('btnColetar').onclick = async () => {
+        if(!user.planoAtual) return notify("Ative um VIP primeiro!");
+        const hoje = new Date().toLocaleDateString('pt-AO');
+        if(user.ultima === hoje) return notify("Já recolheu hoje!");
+
+        let nSaldo = user.saldo + user.planoAtual.lucro;
+        let nExt = user.extrato || [];
+        nExt.unshift({ idReq: Date.now(), data: new Date().toLocaleString(), desc: "Lucro Diário", valor: user.planoAtual.lucro, status: "Concluído" });
+        await update(ref(db, 'users/'+user.tel), { saldo: nSaldo, ultima: hoje, extrato: nExt });
+        toggleNav(false); notify("Lucro recebido!");
+    };
+
+    document.getElementById('btnEnviarDep').onclick = function() {
+        const v = parseFloat(document.getElementById('valDep').value);
+        const file = document.getElementById('imgDep').files[0];
+        if(!v || v < 500) return notify("Mínimo 500 Kz");
+        if(!file) return notify("Anexe o comprovativo!");
+
+        const reader = new FileReader();
+        notify("A processar...");
+        reader.onloadend = async function() {
+            const idReq = "DEP" + Date.now();
+            let nExt = user.extrato || [];
+            nExt.unshift({ idReq, data: new Date().toLocaleString(), desc: "Depósito solicitado", valor: v, status: "Processando" });
+            
+            await update(ref(db, 'users/'+user.tel), { extrato: nExt });
+            await set(ref(db, 'depositos_pendentes/'+idReq), { 
+                idReq, tel: user.tel, valor: v, tipo: 'DEPÓSITO', comprovante: reader.result 
+            });
+            fecharModal('modalDep'); notify("Enviado para análise!");
+        };
+        reader.readAsDataURL(file);
+    };
+
+    document.getElementById('valSaque').oninput = function() {
+        const v = parseFloat(this.value);
+        const preview = document.getElementById('previewTaxa');
+        if(v >= 300) {
+            const liquido = v * 0.90;
+            preview.innerText = `Receberá: ${liquido.toLocaleString()} Kz (Após taxa)`;
+        } else {
+            preview.innerText = "";
+        }
+    }
+
+    document.getElementById('btnEnviarSaque').onclick = async () => {
+        const valorBruto = parseFloat(document.getElementById('valSaque').value);
+        const iban = document.getElementById('saqueIban').value;
+        const nome = document.getElementById('saqueNome').value;
+
+        if(!valorBruto || valorBruto < 300) return notify("Saque mínimo: 300 Kz");
+        if(valorBruto > user.saldo) return notify("Saldo insuficiente!");
+        if(!iban || !nome) return notify("Preencha todos os campos!");
+        
+        const taxa = valorBruto * 0.10;
+        const valorLiquido = valorBruto - taxa;
+        const idReq = "SAQ" + Date.now();
+        
+        let nSaldo = user.saldo - valorBruto;
+        let nExt = user.extrato || [];
+        nExt.unshift({ idReq, data: new Date().toLocaleString(), desc: "Pedido de Saque (-10%)", valor: -valorBruto, status: "Processando" });
+
+        await update(ref(db, 'users/'+user.tel), { saldo: nSaldo, extrato: nExt });
+        await set(ref(db, 'depositos_pendentes/'+idReq), { 
+            idReq, tel: user.tel, valor: valorLiquido, tipo: 'SAQUE', iban, nome 
+        });
+
+        fecharModal('modalSaque'); 
+        notify("Saque solicitado!");
+    };
+
+    document.getElementById('btnAbrirExtrato').onclick = () => {
+        abrirModal('modalExtrato');
+        const lista = user.extrato || [];
+        document.getElementById('listaExtrato').innerHTML = lista.map(e => `
+            <div class="item-extrato">
+                <small>${e.data}</small><br><b>${e.desc}</b>: ${e.valor.toLocaleString()} Kz<br>
+                Status: <span style="color:${e.status==='Concluído'?'green':'orange'}">${e.status}</span>
+            </div>`).join('') || "Sem movimentos.";
+    };
+
+    window.toggleNav = (b) => { document.getElementById("myNav").style.height = b ? "100%" : "0"; }
+    window.abrirModal = (id) => { document.getElementById(id).style.display = "flex"; }
+    window.fecharModal = (id) => { document.getElementById(id).style.display = "none"; }
+</script>
 </body>
-                        </html>
-                
+            </html>
