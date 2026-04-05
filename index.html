@@ -1,364 +1,297 @@
-                
 <!DOCTYPE html>
-<html lang="pt-ao">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LemonInvest - Oficial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>TESLA - Master System</title>
     <style>
-        :root {
-            --verde-limao: #32CD32; --verde-escuro: #1e801e; --amarelo-citrico: #e6ff00;
-            --fundo: #f0f4f1; --whatsapp: #25D366;
-        }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--fundo); margin: 0; padding: 20px; padding-bottom: 120px; }
-
-        /* Notificação */
-        #lemonNotify { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: white; border-left: 6px solid var(--verde-limao); padding: 15px 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 10001; font-weight: bold; min-width: 280px; text-align: center; }
-
-        /* Login */
-        #telaLogin { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--verde-escuro), #004d00); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
-        .box-login { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 400px; text-align: center; }
-        .box-login input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #ddd; border-radius: 12px; outline: none; }
-
-        /* Header */
-        header { background: linear-gradient(135deg, var(--verde-escuro), #004d00); color: white; padding: 30px 20px; border-radius: 20px; text-align: center; margin-bottom: 25px; position: relative; }
-        .user-badge { position: absolute; top: 15px; right: 20px; background: rgba(255,255,255,0.15); padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
-        .saldo-valor { font-size: 2.2rem; font-weight: 800; color: var(--amarelo-citrico); display: block; }
-
-        /* VIP Cards */
-        .card-vip { background: white; border-radius: 20px; padding: 20px; border: 1px solid #e0eec0; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .btn-ativar { background: var(--verde-escuro); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        .btn-ativo { background: #ccc; color: #666; cursor: not-allowed; }
-
-        /* Menu Inferior */
-        .nav-bottom { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--verde-escuro); padding: 15px; display: flex; justify-content: center; z-index: 1000; }
-        .btn-menu-open { background: var(--amarelo-citrico); color: var(--verde-escuro); border: none; padding: 12px 40px; border-radius: 30px; font-weight: 900; cursor: pointer; }
-
-        /* Overlay Menu */
-        .overlay { height: 0; width: 100%; position: fixed; z-index: 8000; bottom: 0; left: 0; background: rgba(15, 60, 15, 0.98); overflow: hidden; transition: 0.4s; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .overlay a { padding: 15px; font-size: 1.2rem; color: white; text-decoration: none; width: 100%; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
-
-        /* Modais */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9000; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: white; padding: 25px; border-radius: 20px; width: 100%; max-width: 400px; text-align: center; max-height: 85vh; overflow-y: auto; }
-        .item-extrato { text-align: left; padding: 10px; border-bottom: 1px solid #eee; font-size: 0.85rem; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; margin: 0; overflow-x: hidden; }
+        .tesla-orange { color: #FF6B00; }
+        .bg-tesla-orange { background-color: #FF6B00; }
+        .glass-card { background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.05); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03); }
+        .glass-input { background: #fdfdfd; border: 1px solid #e2e8f0; text-align: center; font-weight: bold; }
+        .hidden { display: none !important; }
+        .auth-tab-active { border-bottom: 3px solid #FF6B00; color: #1e293b; font-weight: 900; }
         
-        .btn-principal { width: 100%; padding: 15px; background: var(--verde-escuro); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .wpp-float { position: fixed; bottom: 100px; right: 20px; width: 60px; height: 60px; background-color: #25d366; color: white; border-radius: 50px; text-align: center; font-size: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 1000; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: 0.3s; }
 
-        /* Botão WhatsApp Flutuante */
-        .btn-whatsapp { position: fixed; bottom: 90px; right: 20px; background: var(--whatsapp); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 1000; text-decoration: none; font-size: 30px; }
+        #notification-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
+        .notification { animation: slideIn 0.4s ease-out; background: white; padding: 16px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-left: 5px solid #FF6B00; font-size: 11px; font-weight: 800; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
     </style>
 </head>
 <body>
 
-<div id="lemonNotify">Mensagem</div>
+    <a href="https://chat.whatsapp.com/FT5dtVq275NLBwEfsdeGDn" class="wpp-float" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
 
-<div id="telaLogin">
-    <div class="box-login">
-        <h2 style="color:var(--verde-escuro)">🍋 LemonInvest</h2>
-        <input type="number" id="telInput" placeholder="Telemóvel">
-        <input type="password" id="passInput" placeholder="Palavra-passe">
-        <button class="btn-principal" id="btnAcao">ENTRAR</button>
-        <p id="toggleAuth" style="margin-top:20px; font-size:0.85rem; color:var(--verde-escuro); cursor:pointer; font-weight: bold;">Criar nova conta</p>
+    <div id="notification-container"></div>
+
+    <div id="auth-portal" class="flex items-center justify-center min-h-screen p-6">
+        <div class="w-full max-w-md glass-card rounded-[2.5rem] overflow-hidden">
+            <div class="pt-12 pb-6 text-center">
+                <h1 class="text-4xl font-black tesla-orange uppercase italic">Tesla</h1>
+                <p id="ref-status" class="text-[8px] font-bold text-emerald-500 uppercase mt-2 hidden">Convidado por: <span id="referrer-id"></span></p>
+            </div>
+            <div class="flex border-b border-zinc-100 text-center">
+                <button id="tab-login" class="flex-1 py-5 text-zinc-400 font-bold text-[10px] uppercase">Entrar</button>
+                <button id="tab-register" class="flex-1 py-5 auth-tab-active text-[10px] uppercase">Registo</button>
+            </div>
+            <div class="p-8 space-y-4">
+                <input type="tel" id="auth-contact" placeholder="Número Telemóvel" class="w-full py-5 glass-input rounded-2xl text-sm outline-none">
+                <input type="password" id="auth-pass" placeholder="Senha" class="w-full py-5 glass-input rounded-2xl text-sm outline-none">
+                <div id="confirm-pass-container">
+                    <input type="password" id="auth-confirm-pass" placeholder="Confirmar Senha" class="w-full py-5 glass-input rounded-2xl text-sm outline-none">
+                </div>
+                <button id="auth-main-btn" class="w-full bg-tesla-orange text-white font-black py-5 rounded-2xl uppercase text-[11px] mt-4">Confirmar</button>
+            </div>
+        </div>
     </div>
-</div>
 
-<header>
-    <div class="user-badge">ID: <span id="uID">-----</span></div>
-    <span style="font-size: 0.8rem;">O seu saldo</span>
-    <span class="saldo-valor" id="uSaldo">0,00 Kz</span>
-    <small id="uPlanoAtual">A carregar...</small>
-</header>
+    <div id="main-app" class="hidden pb-32">
+        <header class="p-8 flex justify-between items-center">
+            <h1 class="text-2xl font-black italic uppercase">Tesla</h1>
+            <button onclick="location.reload()" class="w-12 h-12 rounded-2xl bg-white border flex items-center justify-center text-zinc-300"><i class="fa-solid fa-power-off"></i></button>
+        </header>
 
-<div id="listaVips"></div>
+        <main id="view-home" class="view-section px-6 space-y-6">
+            <div class="glass-card rounded-[3rem] p-10 text-center border-t-8 border-tesla-orange">
+                <p class="text-zinc-400 text-[10px] uppercase font-black mb-3">Saldo Disponível</p>
+                <h2 class="text-5xl font-black text-zinc-900"><span id="main-balance">0.00</span> <span class="text-lg tesla-orange">Kz</span></h2>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <button id="open-dep" class="bg-tesla-orange text-white py-7 rounded-[2rem] font-black text-[10px] uppercase shadow-lg italic">Depósito</button>
+                <button id="open-wit" class="glass-card py-7 rounded-[2rem] font-black text-[10px] uppercase italic text-zinc-600">Saque</button>
+            </div>
+        </main>
 
-<a href="https://chat.whatsapp.com/GIDLfslZsgXAG2no7gJoEC?mode=gi_t" class="btn-whatsapp" target="_blank">📲</a>
+        <div id="view-ganhos" class="view-section px-6 hidden">
+            <div class="glass-card rounded-[3rem] p-8 border-t-8 border-emerald-500 text-center">
+                <p class="text-zinc-400 text-[10px] uppercase font-black mb-2">Capital em Operação</p>
+                <h2 class="text-4xl font-black text-zinc-900 mb-8"><span id="mining-balance">0.00</span> <span class="text-base tesla-orange">Kz</span></h2>
+                <button id="btn-collect-manual" class="w-full bg-emerald-500 text-white py-5 rounded-2xl font-black text-[11px] uppercase mb-8">Receber Lucro (5%)</button>
+                <input type="number" id="activate-amount" placeholder="Valor para Investir" class="w-full p-5 glass-input border rounded-2xl mb-4">
+                <button id="btn-invest" class="w-full bg-zinc-900 text-white py-5 rounded-2xl font-black text-[10px] uppercase">Ativar Investimento</button>
+            </div>
+        </div>
 
-<nav class="nav-bottom">
-    <button class="btn-menu-open" onclick="toggleNav(true)">☰ MENU PRINCIPAL</button>
-</nav>
+        <div id="view-equipa" class="view-section px-6 hidden">
+            <div class="glass-card rounded-[2.5rem] p-8 text-center">
+                <h3 class="font-black uppercase text-[11px] text-zinc-400 mb-6 italic">Link de Convite (10%)</h3>
+                <input type="text" id="invite-link" readonly class="w-full p-5 bg-zinc-50 rounded-2xl text-[10px] font-bold text-center mb-5 border">
+                <button id="btn-copy" class="w-full bg-zinc-900 text-white py-5 rounded-2xl font-black text-[10px] uppercase">Copiar Link</button>
+            </div>
+        </div>
 
-<div id="myNav" class="overlay">
-    <a href="javascript:void(0)" onclick="toggleNav(false)" style="font-size: 40px; color:var(--amarelo-citrico)">&times;</a>
-    <a href="#" id="btnColetar" style="background:var(--amarelo-citrico); color:black; font-weight: 900;">💹 RECOLHER LUCRO HOJE</a>
-    <a href="#" onclick="abrirModal('modalDep')">📥 DEPÓSITO</a>
-    <a href="#" onclick="abrirModal('modalSaque')">💸 LEVANTAMENTO</a>
-    <a href="#" id="btnAbrirExtrato">📜 MEU EXTRATO</a>
-    <a href="#" id="btnPartilhar" style="color:var(--amarelo-citrico)">🚀 CONVIDAR AMIGOS</a>
-    <a href="#" onclick="location.reload()" style="color:#ff4d4d">🚪 SAIR DA CONTA</a>
-</div>
+        <div id="view-extrato" class="view-section px-6 hidden">
+            <h3 class="font-black uppercase text-[14px] italic mb-8">Histórico</h3>
+            <div id="transaction-list" class="space-y-4"></div>
+        </div>
 
-<div id="modalDep" class="modal">
-    <div class="modal-content">
-        <h3>Fazer Depósito</h3>
-        <p style="font-size:0.85rem; text-align:left; background:#f5f5f5; padding:15px; border-radius:10px; line-height: 1.6;">
-            <b>BFA / BAI (AO06):</b><br>
-            0006 0000 2870 9134 3015 1<br><br>
-            <b>Via Express:</b><br>
-            <span style="color:var(--verde-escuro); font-weight:bold; font-size:1.1rem;">921 054 122</span>
-        </p>
-        <input type="number" id="valDep" placeholder="Valor (Mín. 500 Kz)" style="width:100%; padding:12px; margin:10px 0; border:1px solid #ddd; border-radius:8px;">
-        <label style="display:block; text-align:left; font-size:0.8rem; font-weight:bold; color:var(--verde-escuro)">Carregar Print do Comprovativo:</label>
-        <input type="file" id="imgDep" accept="image/*" style="width:100%; margin:10px 0;">
-        <button class="btn-principal" id="btnEnviarDep">ENVIAR AGORA</button>
-        <button onclick="fecharModal('modalDep')" style="border:none; background:none; color:#999; margin-top:15px;">Cancelar</button>
+        <nav class="fixed bottom-0 left-0 right-0 bg-zinc-900 px-6 py-6 flex justify-around items-center z-50 rounded-t-[3rem]">
+            <button id="nav-home" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-house"></i><span class="text-[8px] font-black uppercase">Painel</span></button>
+            <button id="nav-ganhos" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-chart-line"></i><span class="text-[8px] font-black uppercase">Ganhos</span></button>
+            <button id="nav-equipa" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-users"></i><span class="text-[8px] font-black uppercase">Equipa</span></button>
+            <button id="nav-extrato" class="flex flex-col items-center gap-1 text-zinc-500"><i class="fa-solid fa-list"></i><span class="text-[8px] font-black uppercase">Extrato</span></button>
+        </nav>
     </div>
-</div>
 
-<div id="modalSaque" class="modal">
-    <div class="modal-content">
-        <h3>Levantamento</h3>
-        <p style="font-size: 0.75rem; color: #666; margin-bottom: 10px;">Taxa: 10% | Mínimo: 300 Kz</p>
-        <input type="text" id="saqueNome" placeholder="Nome do Titular" style="width:100%; padding:12px; margin:5px 0; border:1px solid #ddd; border-radius:8px;">
-        <input type="text" id="saqueIban" placeholder="IBAN (AO06...)" maxlength="25" style="width:100%; padding:12px; margin:5px 0; border:1px solid #ddd; border-radius:8px;">
-        <input type="number" id="valSaque" placeholder="Valor (Mín. 300 Kz)" style="width:100%; padding:12px; margin:5px 0; border:1px solid #ddd; border-radius:8px;">
-        <div id="previewTaxa" style="font-size:0.7rem; color:var(--verde-escuro); margin-bottom:10px; font-weight:bold;"></div>
-        <button class="btn-principal" id="btnEnviarSaque">SOLICITAR SAQUE</button>
-        <button onclick="fecharModal('modalSaque')" style="border:none; background:none; color:#999; margin-top:15px;">Cancelar</button>
+    <div id="modal-container" class="fixed inset-0 bg-black/90 z-[100] hidden flex items-center justify-center p-6 backdrop-blur-sm">
+        <div class="w-full max-w-sm bg-white rounded-[3rem] p-10 text-center" id="modal-content"></div>
     </div>
-</div>
 
-<div id="modalExtrato" class="modal">
-    <div class="modal-content">
-        <h3>Histórico</h3>
-        <div id="listaExtrato"></div>
-        <button onclick="fecharModal('modalExtrato')" class="btn-principal">FECHAR</button>
-    </div>
-</div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, get, update, onValue, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-    import { getDatabase, ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyC3SurEz7aLcHG4yBUq5zrGBPOb2mvLpZ4",
-        databaseURL: "https://fir-6e9ec-default-rtdb.firebaseio.com",
-        projectId: "fir-6e9ec"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    let user = null;
-    let modoLogin = true;
-
-    // Captura o link de indicação na URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const refBy = urlParams.get('ref');
-    if(refBy) localStorage.setItem('lemon_referrer', refBy);
-
-    const VIPS = [
-        { id: 1, nome: 'Baby', custo: 3500, lucro: 157.50 },
-        { id: 2, nome: 'Júnior', custo: 15000, lucro: 675.00 },
-        { id: 3, nome: 'Galego', custo: 35000, lucro: 1575.00 },
-        { id: 4, nome: 'Siciliano', custo: 55000, lucro: 2475.00 },
-        { id: 5, nome: 'Imperial', custo: 100000, lucro: 5000.00 }
-    ];
-
-    function notify(m) {
-        const n = document.getElementById('lemonNotify');
-        n.innerText = m; n.style.display = 'block';
-        setTimeout(() => n.style.display = 'none', 3000);
-    }
-
-    document.getElementById('toggleAuth').onclick = () => {
-        modoLogin = !modoLogin;
-        document.getElementById('btnAcao').innerText = modoLogin ? "ENTRAR" : "CRIAR CONTA AGORA";
-        document.getElementById('toggleAuth').innerText = modoLogin ? "Criar nova conta" : "Já tenho conta";
-    };
-
-    document.getElementById('btnAcao').onclick = async () => {
-        const tel = document.getElementById('telInput').value;
-        const pas = document.getElementById('passInput').value;
-        if(tel.length < 9) return notify("Telemóvel inválido!");
-
-        if(modoLogin) {
-            const snap = await get(ref(db, 'users/' + tel));
-            if(snap.exists()) {
-                const u = snap.val();
-                if(u.pass === pas) {
-                    if(u.banido) return notify("Acesso bloqueado!");
-                    user = u;
-                    entrarNoApp();
-                } else notify("Senha incorreta!");
-            } else notify("Conta inexistente!");
-        } else {
-            const snap = await get(ref(db, 'users/' + tel));
-            if(snap.exists()) return notify("Número já registado!");
-            
-            // Salva quem indicou este novo usuário
-            const indicadoPor = localStorage.getItem('lemon_referrer');
-            
-            const novo = { 
-                tel, pass: pas, id: Math.floor(10000+Math.random()*89999), 
-                saldo: 0, planoAtual: null, ultima: "", extrato: [],
-                indicadoPor: indicadoPor || null
-            };
-            await set(ref(db, 'users/' + tel), novo);
-            notify("Registado com sucesso!");
-            location.reload();
-        }
-    };
-
-    function entrarNoApp() {
-        document.getElementById('telaLogin').style.display = 'none';
-        onValue(ref(db, 'users/' + user.tel), (snap) => {
-            if(snap.exists()) {
-                user = snap.val();
-                atualizarTela();
-            }
-        });
-    }
-
-    function atualizarTela() {
-        document.getElementById('uID').innerText = user.id || "00000";
-        document.getElementById('uSaldo').innerText = (user.saldo || 0).toLocaleString('pt-AO') + " Kz";
-        document.getElementById('uPlanoAtual').innerText = user.planoAtual ? "Plano: " + user.planoAtual.nome : "Nenhum VIP Ativo";
-        renderVips();
-    }
-
-    function renderVips() {
-        const cont = document.getElementById('listaVips');
-        cont.innerHTML = VIPS.map(v => {
-            const isAtivo = user.planoAtual && user.planoAtual.nome === v.nome;
-            return `<div class="card-vip">
-                <div><b>VIP ${v.id} - ${v.nome}</b><br><small>${v.custo.toLocaleString()} Kz | +${v.lucro}/dia</small></div>
-                <button class="btn-ativar ${isAtivo ? 'btn-ativo' : ''}" onclick="${isAtivo ? '' : `ativarPlano('${v.nome}', ${v.custo}, ${v.lucro})`}">${isAtivo ? 'ATIVO' : 'ATIVAR'}</button>
-            </div>`;
-        }).join('');
-    }
-
-    // LÓGICA DE ATIVAÇÃO COM BÓNUS DE AFILIADO
-    window.ativarPlano = async (nome, custo, lucro) => {
-        if(user.saldo < custo) return notify("Saldo insuficiente!");
-        
-        let nSaldo = user.saldo - custo;
-        let nExt = user.extrato || [];
-        nExt.unshift({ idReq: Date.now(), data: new Date().toLocaleString(), desc: "Ativação VIP "+nome, valor: -custo, status: "Concluído" });
-        
-        // 1. Atualiza o usuário atual
-        await update(ref(db, 'users/'+user.tel), { saldo: nSaldo, planoAtual: {nome, custo, lucro}, extrato: nExt });
-
-        // 2. Lógica de Recompensa de 10% para o Padrinho
-        if(user.indicadoPor) {
-            const bonus = custo * 0.10;
-            const refSnap = await get(ref(db, 'users/' + user.indicadoPor));
-            if(refSnap.exists()) {
-                const padrinho = refSnap.val();
-                let pSaldo = (padrinho.saldo || 0) + bonus;
-                let pExt = padrinho.extrato || [];
-                pExt.unshift({ 
-                    idReq: Date.now(), 
-                    data: new Date().toLocaleString(), 
-                    desc: `Bónus Convite (Amigo VIP ${nome})`, 
-                    valor: bonus, 
-                    status: "Concluído" 
-                });
-                await update(ref(db, 'users/'+user.indicadoPor), { saldo: pSaldo, extrato: pExt });
-            }
-        }
-
-        notify("VIP Ativado!");
-    };
-
-    // BOTÃO CONVIDAR AMIGOS
-    document.getElementById('btnPartilhar').onclick = () => {
-        const link = window.location.origin + window.location.pathname + "?ref=" + user.tel;
-        const msg = `🚀 Ganhe dinheiro diário na LemonInvest! Use meu link para ganhar bónus: ${link}`;
-        
-        if (navigator.share) {
-            navigator.share({ title: 'LemonInvest', text: msg, url: link });
-        } else {
-            navigator.clipboard.writeText(msg);
-            notify("Link copiado! Envie aos amigos.");
-        }
-    };
-
-    document.getElementById('btnColetar').onclick = async () => {
-        if(!user.planoAtual) return notify("Ative um VIP primeiro!");
-        const hoje = new Date().toLocaleDateString('pt-AO');
-        if(user.ultima === hoje) return notify("Já recolheu hoje!");
-
-        let nSaldo = user.saldo + user.planoAtual.lucro;
-        let nExt = user.extrato || [];
-        nExt.unshift({ idReq: Date.now(), data: new Date().toLocaleString(), desc: "Lucro Diário", valor: user.planoAtual.lucro, status: "Concluído" });
-        await update(ref(db, 'users/'+user.tel), { saldo: nSaldo, ultima: hoje, extrato: nExt });
-        toggleNav(false); notify("Lucro recebido!");
-    };
-
-    document.getElementById('btnEnviarDep').onclick = function() {
-        const v = parseFloat(document.getElementById('valDep').value);
-        const file = document.getElementById('imgDep').files[0];
-        if(!v || v < 500) return notify("Mínimo 500 Kz");
-        if(!file) return notify("Anexe o comprovativo!");
-
-        const reader = new FileReader();
-        notify("A processar...");
-        reader.onloadend = async function() {
-            const idReq = "DEP" + Date.now();
-            let nExt = user.extrato || [];
-            nExt.unshift({ idReq, data: new Date().toLocaleString(), desc: "Depósito solicitado", valor: v, status: "Processando" });
-            
-            await update(ref(db, 'users/'+user.tel), { extrato: nExt });
-            await set(ref(db, 'depositos_pendentes/'+idReq), { 
-                idReq, tel: user.tel, valor: v, tipo: 'DEPÓSITO', comprovante: reader.result 
-            });
-            fecharModal('modalDep'); notify("Enviado para análise!");
+        const firebaseConfig = {
+            apiKey: "AIzaSyC3SurEz7aLcHG4yBUq5zrGBPOb2mvLpZ4",
+            authDomain: "fir-6e9ec.firebaseapp.com",
+            databaseURL: "https://fir-6e9ec-default-rtdb.firebaseio.com",
+            projectId: "fir-6e9ec",
+            storageBucket: "fir-6e9ec.firebasestorage.app",
+            messagingSenderId: "579697818964",
+            appId: "1:579697818964:web:aad151fcbe3989df431cc1"
         };
-        reader.readAsDataURL(file);
-    };
 
-    document.getElementById('valSaque').oninput = function() {
-        const v = parseFloat(this.value);
-        const preview = document.getElementById('previewTaxa');
-        if(v >= 300) {
-            const liquido = v * 0.90;
-            preview.innerText = `Receberá: ${liquido.toLocaleString()} Kz (Após taxa)`;
-        } else {
-            preview.innerText = "";
-        }
-    }
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        let userLogged = "";
+        let authMode = "register";
+        let tempProof = "";
 
-    document.getElementById('btnEnviarSaque').onclick = async () => {
-        const valorBruto = parseFloat(document.getElementById('valSaque').value);
-        const iban = document.getElementById('saqueIban').value;
-        const nome = document.getElementById('saqueNome').value;
+        const notify = (m, type="success") => {
+            const c = document.getElementById("notification-container");
+            const d = document.createElement("div");
+            d.className = "notification";
+            if(type === "error") d.style.borderLeftColor = "red";
+            d.innerHTML = m;
+            c.appendChild(d);
+            setTimeout(() => d.remove(), 3000);
+        };
 
-        if(!valorBruto || valorBruto < 300) return notify("Saque mínimo: 300 Kz");
-        if(valorBruto > user.saldo) return notify("Saldo insuficiente!");
-        if(!iban || !nome) return notify("Preencha todos os campos!");
-        
-        const taxa = valorBruto * 0.10;
-        const valorLiquido = valorBruto - taxa;
-        const idReq = "SAQ" + Date.now();
-        
-        let nSaldo = user.saldo - valorBruto;
-        let nExt = user.extrato || [];
-        nExt.unshift({ idReq, data: new Date().toLocaleString(), desc: "Pedido de Saque (-10%)", valor: -valorBruto, status: "Processando" });
+        document.getElementById("auth-main-btn").onclick = async () => {
+            const phone = document.getElementById("auth-contact").value.trim();
+            const pass = document.getElementById("auth-pass").value.trim();
+            if(!phone || !pass) return notify("Dados incompletos", "error");
+            const uRef = ref(db, "users/" + phone);
+            try {
+                const snap = await get(uRef);
+                if(authMode === "register") {
+                    if(snap.exists()) return notify("Já existe", "error");
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const referrer = urlParams.get('ref') || "direto";
+                    await set(uRef, { phone, pass, balance: 500, mining: 0, lastCollect: "", invitedBy: referrer });
+                    notify("Registo ok!"); document.getElementById("tab-login").click();
+                } else {
+                    if(snap.exists() && snap.val().pass === pass) {
+                        userLogged = phone;
+                        document.getElementById("auth-portal").classList.add("hidden");
+                        document.getElementById("main-app").classList.remove("hidden");
+                        document.getElementById("invite-link").value = window.location.origin + window.location.pathname + "?ref=" + phone;
+                        onValue(uRef, s => {
+                            if(s.exists()){
+                                document.getElementById("main-balance").innerText = s.val().balance.toFixed(2);
+                                document.getElementById("mining-balance").innerText = (s.val().mining || 0).toFixed(2);
+                            }
+                        });
+                        loadHistory();
+                        document.getElementById("nav-home").click();
+                    } else notify("Erro de login", "error");
+                }
+            } catch(e) { console.error(e); }
+        };
 
-        await update(ref(db, 'users/'+user.tel), { saldo: nSaldo, extrato: nExt });
-        await set(ref(db, 'depositos_pendentes/'+idReq), { 
-            idReq, tel: user.tel, valor: valorLiquido, tipo: 'SAQUE', iban, nome 
+        document.getElementById("open-dep").onclick = () => {
+            tempProof = "";
+            document.getElementById("modal-container").classList.remove("hidden");
+            document.getElementById("modal-content").innerHTML = `
+                <h3 class="text-xl font-black mb-4 uppercase tesla-orange">Depósito</h3>
+                <div class="bg-zinc-50 p-4 rounded-xl text-left text-[10px] mb-4 border">
+                    <p>BFA IBAN 1: <b>0006 0000 2870 9134 3015 1</b></p>
+                    <p class="mt-2">BFA IBAN 2: <b>0006 0000 2870 9134 3016 2</b></p>
+                </div>
+                <input type="number" id="val-dep" placeholder="Valor Kz" class="w-full p-4 glass-input rounded-xl mb-4 border">
+                <input type="file" id="input-file" accept="image/*" class="mb-4 text-[10px]">
+                <button id="final-dep" class="w-full bg-tesla-orange text-white py-4 rounded-xl font-black uppercase">Enviar Prova</button>
+                <button onclick="document.getElementById('modal-container').classList.add('hidden')" class="mt-4 text-[10px] uppercase opacity-50">Fechar</button>
+            `;
+            document.getElementById("input-file").onchange = (e) => {
+                const reader = new FileReader();
+                reader.onload = (ev) => tempProof = ev.target.result;
+                if(e.target.files[0]) reader.readAsDataURL(e.target.files[0]);
+            };
+            document.getElementById("final-dep").onclick = async () => {
+                const v = document.getElementById("val-dep").value;
+                if(!v || !tempProof) return notify("Falta valor ou foto", "error");
+                await push(ref(db, "transactions"), { user: userLogged, valor: parseFloat(v), tipo: "DEPÓSITO", status: "PENDENTE", comprovante: tempProof, data: new Date().toLocaleString() });
+                notify("Enviado!"); document.getElementById("modal-container").classList.add("hidden");
+            };
+        };
+
+        // SAQUE CORRIGIDO (ENVIA IBAN E TRAVA 200KZ)
+        document.getElementById("open-wit").onclick = () => {
+            document.getElementById("modal-container").classList.remove("hidden");
+            document.getElementById("modal-content").innerHTML = `
+                <h3 class="text-xl font-black mb-4 uppercase tesla-orange">Saque</h3>
+                <p class="text-[9px] text-red-500 mb-4 font-bold italic">Mínimo: 200 Kz</p>
+                <input type="text" id="iban-wit" placeholder="Seu IBAN" class="w-full p-4 glass-input rounded-xl mb-4 border">
+                <input type="number" id="val-wit" placeholder="Valor Kz" class="w-full p-4 glass-input rounded-xl mb-4 border">
+                <button id="final-wit" class="w-full bg-tesla-orange text-white py-4 rounded-xl font-black uppercase">Pedir Saque</button>
+                <button onclick="document.getElementById('modal-container').classList.add('hidden')" class="mt-4 text-[10px] uppercase opacity-50">Fechar</button>
+            `;
+            document.getElementById("final-wit").onclick = async () => {
+                const v = parseFloat(document.getElementById("val-wit").value);
+                const iban = document.getElementById("iban-wit").value.trim();
+                
+                if(!v || v < 200) return notify("Mínimo 200 Kz", "error");
+                if(!iban) return notify("IBAN obrigatório", "error");
+
+                const snap = await get(ref(db, "users/" + userLogged));
+                if(snap.val().balance < v) return notify("Saldo insuficiente", "error");
+
+                await update(ref(db, "users/" + userLogged), { balance: snap.val().balance - v });
+                // IMPORTANTE: Salvando o IBAN dentro da transação para o Admin ver
+                await push(ref(db, "transactions"), { 
+                    user: userLogged, 
+                    valor: v, 
+                    iban: iban, 
+                    tipo: "SAQUE", 
+                    status: "PENDENTE", 
+                    data: new Date().toLocaleString() 
+                });
+                notify("Saque pedido!"); document.getElementById("modal-container").classList.add("hidden");
+            };
+        };
+
+        const navs = ["home", "ganhos", "equipa", "extrato"];
+        navs.forEach(n => {
+            document.getElementById("nav-"+n).onclick = () => {
+                navs.forEach(x => {
+                    document.getElementById("view-"+x).classList.add("hidden");
+                    document.getElementById("nav-"+x).className = "flex flex-col items-center gap-1 text-zinc-500";
+                });
+                document.getElementById("view-"+n).classList.remove("hidden");
+                document.getElementById("nav-"+n).className = "flex flex-col items-center gap-1 tesla-orange";
+            };
         });
 
-        fecharModal('modalSaque'); 
-        notify("Saque solicitado!");
-    };
+        document.getElementById("btn-collect-manual").onclick = async () => {
+            const snap = await get(ref(db, "users/" + userLogged));
+            const d = snap.val();
+            const today = new Date().toLocaleDateString();
+            if(d.lastCollect === today) return notify("Já recebeu hoje!", "error");
+            if(!d.mining || d.mining <= 0) return notify("Sem capital", "error");
+            const lucro = d.mining * 0.05;
+            await update(ref(db, "users/" + userLogged), { balance: d.balance + lucro, lastCollect: today });
+            notify("Ganhou " + lucro.toFixed(2) + " Kz");
+        };
 
-    document.getElementById('btnAbrirExtrato').onclick = () => {
-        abrirModal('modalExtrato');
-        const lista = user.extrato || [];
-        document.getElementById('listaExtrato').innerHTML = lista.map(e => `
-            <div class="item-extrato">
-                <small>${e.data}</small><br><b>${e.desc}</b>: ${e.valor.toLocaleString()} Kz<br>
-                Status: <span style="color:${e.status==='Concluído'?'green':'orange'}">${e.status}</span>
-            </div>`).join('') || "Sem movimentos.";
-    };
+        document.getElementById("btn-invest").onclick = async () => {
+            const v = parseFloat(document.getElementById("activate-amount").value);
+            if(!v || v < 100) return notify("Mínimo 100 Kz", "error");
+            const snap = await get(ref(db, "users/" + userLogged));
+            if(snap.val().balance < v) return notify("Sem saldo", "error");
+            await update(ref(db, "users/" + userLogged), { balance: snap.val().balance - v, mining: (snap.val().mining || 0) + v });
+            notify("Investido!"); document.getElementById("activate-amount").value = "";
+        };
 
-    window.toggleNav = (b) => { document.getElementById("myNav").style.height = b ? "100%" : "0"; }
-    window.abrirModal = (id) => { document.getElementById(id).style.display = "flex"; }
-    window.fecharModal = (id) => { document.getElementById(id).style.display = "none"; }
-</script>
+        const loadHistory = () => {
+            onValue(ref(db, "transactions"), s => {
+                const box = document.getElementById("transaction-list");
+                box.innerHTML = "";
+                if(s.exists()){
+                    Object.values(s.val()).reverse().forEach(t => {
+                        if(t.user === userLogged){
+                            const div = document.createElement("div");
+                            div.className = "glass-card p-4 rounded-2xl flex justify-between items-center text-[10px]";
+                            div.innerHTML = `<div><b>${t.tipo}</b><br><small>${t.data}</small></div><div class="text-right"><b>${(t.valor || 0).toFixed(2)} Kz</b><br><span class="text-orange-500">${t.status}</span></div>`;
+                            box.appendChild(div);
+                        }
+                    });
+                }
+            });
+        };
+
+        document.getElementById("btn-copy").onclick = () => {
+            document.getElementById("invite-link").select();
+            document.execCommand("copy"); notify("Copiado!");
+        };
+
+        document.getElementById("tab-login").onclick = () => {
+            authMode = "login"; document.getElementById("confirm-pass-container").classList.add("hidden");
+            document.getElementById("tab-login").className = "flex-1 py-5 auth-tab-active text-[10px] uppercase";
+            document.getElementById("tab-register").className = "flex-1 py-5 text-zinc-400 font-bold text-[10px] uppercase";
+        };
+        document.getElementById("tab-register").onclick = () => {
+            authMode = "register"; document.getElementById("confirm-pass-container").classList.remove("hidden");
+            document.getElementById("tab-register").className = "flex-1 py-5 auth-tab-active text-[10px] uppercase";
+            document.getElementById("tab-login").className = "flex-1 py-5 text-zinc-400 font-bold text-[10px] uppercase";
+        };
+    </script>
 </body>
-            </html>
+  </html>
