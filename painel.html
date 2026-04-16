@@ -1,300 +1,202 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-ao">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Admin - Central de Controle</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <title>TESLA - MASTER COMMAND CENTER</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { background-color: #020617; color: #e2e8f0; font-family: 'Inter', sans-serif; overflow: hidden; }
-        .admin-card { background: #0f172a; border: 1px solid #1e293b; border-radius: 1.5rem; }
-        .user-row { transition: all 0.2s; border-bottom: 1px solid #1e293b; cursor: pointer; }
-        .user-row:hover { background: #1e293b; }
-        /* Placeholder para carregar imagem rápido */
-        .img-preview { width: 60px; height: 60px; object-fit: cover; border-radius: 12px; cursor: pointer; border: 2px solid #1e293b; background: #1e293b; }
-        input { background: #1e293b !important; border: 1px solid #334155 !important; color: white !important; }
-        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .toast { background: #1e293b; border-left: 4px solid #f97316; padding: 16px 24px; border-radius: 12px; font-size: 12px; font-weight: bold; animation: slideIn 0.3s ease-out; }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 5000; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
-        .iban-badge { background: #164e63; color: #22d3ee; padding: 4px 10px; border-radius: 6px; font-family: monospace; font-size: 11px; display: inline-flex; align-items: center; gap: 5px; }
+        body { background: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .card-admin { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 20px; }
+        .btn-acao { transition: all 0.2s; font-weight: 800; text-transform: uppercase; font-size: 10px; }
+        input, select { background: #0f172a; border: 1px solid #334155; color: white; padding: 12px; border-radius: 8px; outline: none; width: 100%; }
+        .modal { background: rgba(0,0,0,0.95); position: fixed; inset: 0; z-index: 10000; display: none; align-items: center; justify-content: center; padding: 20px; }
     </style>
 </head>
-<body class="p-4">
+<body class="p-4 pb-24">
 
-    <div id="toast-container"></div>
-
-    <div id="img-modal" class="modal" onclick="this.style.display='none'">
-        <img id="img-full" src="" class="max-w-full max-h-full rounded-2xl shadow-2xl border-4 border-white/10">
+    <div id="modal-img" class="modal" onclick="fecharModal()">
+        <img id="img-full" class="max-w-full max-h-[80vh] rounded-lg shadow-2xl">
+        <p class="absolute bottom-10 text-white font-black uppercase italic">Toque fora para fechar</p>
     </div>
 
-    <div id="user-modal" class="modal">
-        <div class="bg-slate-900 border border-slate-700 w-full max-w-md p-8 rounded-[2.5rem] relative shadow-2xl">
-            <button onclick="closeUserModal()" class="absolute top-6 right-6 text-slate-500"><i class="fa-solid fa-xmark text-2xl"></i></button>
-            <h2 id="m-user-phone" class="text-2xl font-black text-orange-500 mb-1 italic">9XXXXXXXX</h2>
-            <p id="m-user-ref" class="text-[10px] font-bold text-slate-500 uppercase mb-6">Convidados: 0 pessoas</p>
-
-            <div class="space-y-4">
-                <div>
-                    <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Alterar Senha</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="m-new-pass" class="flex-1 p-3 rounded-xl text-xs outline-none">
-                        <button onclick="updateUserField('pass')" class="bg-slate-700 px-4 rounded-xl text-[10px] font-bold">OK</button>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="adjustBalance('add')" class="bg-emerald-600/20 text-emerald-500 border border-emerald-500/30 p-4 rounded-2xl font-black text-[10px] uppercase">+ Saldo/Bónus</button>
-                    <button onclick="adjustBalance('sub')" class="bg-red-600/20 text-red-500 border border-red-500/30 p-4 rounded-2xl font-black text-[10px] uppercase">- Retirar Saldo</button>
-                </div>
-
-                <div class="flex flex-col gap-2 pt-4">
-                    <button id="btn-ban" onclick="toggleBan()" class="w-full py-4 rounded-2xl font-black text-[10px] uppercase bg-zinc-800 text-zinc-400">Bloquear Acesso</button>
-                    <button onclick="deleteAccount()" class="w-full py-4 rounded-2xl font-black text-[10px] uppercase bg-red-600 text-white">Eliminar Registro</button>
-                </div>
-            </div>
-        </div>
+    <div id="lock-screen" class="fixed inset-0 bg-slate-900 z-[9999] flex flex-col items-center justify-center p-8 text-center">
+        <i class="fas fa-unlock-alt text-5xl text-blue-500 mb-6"></i>
+        <h2 class="text-xl font-black mb-6 uppercase italic">Painel de Autenticação</h2>
+        <input type="password" id="admin-key" placeholder="Introduza a Chave ABS..." class="text-center mb-4 max-w-xs">
+        <button onclick="autenticar()" class="bg-blue-600 w-full max-w-xs py-4 rounded-xl font-black shadow-lg">ACESSAR SISTEMA</button>
     </div>
 
-    <div id="lock-screen">
-        <div class="login-box fixed inset-0 flex items-center justify-center bg-slate-950 z-[9999]">
-            <div class="bg-slate-900 p-10 rounded-[3rem] border border-slate-800 text-center w-80">
-                <i class="fa-solid fa-key text-3xl text-orange-600 mb-6"></i>
-                <input type="password" id="admin-key-input" placeholder="Chave Mestra" class="w-full p-4 rounded-2xl mb-4 text-center">
-                <button onclick="validateAccess()" class="w-full bg-orange-600 py-4 rounded-2xl font-black text-xs uppercase">Entrar</button>
+    <div id="admin-content" class="hidden">
+        <header class="flex justify-between items-center mb-8 border-b border-slate-700 pb-4">
+            <div>
+                <h1 class="font-black italic text-blue-500">GITHUB <span class="text-white">CONTROL</span></h1>
+                <p class="text-[10px] opacity-50 uppercase font-bold">Inscritos: <span id="total-users" class="text-white">0</span></p>
             </div>
-        </div>
-    </div>
-
-    <div id="main-content" class="hidden">
-        <header class="max-w-7xl mx-auto mb-8 flex justify-between items-center px-4">
-            <div class="flex items-center gap-6">
-                <div>
-                    <h1 class="text-3xl font-black text-orange-500 italic uppercase">Tesla Admin</h1>
-                    <p id="stat-total" class="text-[10px] font-bold text-slate-500 uppercase mt-1">Sincronizando...</p>
-                </div>
-                <button id="btn-cleanup" class="bg-red-600/10 hover:bg-red-600/20 text-red-500 border border-red-500/30 px-4 py-2 rounded-xl text-[9px] font-black uppercase flex items-center gap-2 transition-all">
-                    <i class="fa-solid fa-broom"></i> Limpar Banco
-                </button>
-            </div>
-            <div class="relative w-80">
-                <input type="tel" id="search-input" placeholder="Pesquisar..." class="w-full pl-6 pr-4 py-4 rounded-2xl text-xs outline-none">
-            </div>
+            <button onclick="limparCache()" class="bg-amber-600 text-[9px] px-4 py-2 rounded-lg font-black uppercase italic"><i class="fas fa-broom mr-1"></i> Limpar Cache</button>
         </header>
 
-        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 px-4">
-            <div class="lg:col-span-8 space-y-6">
-                <div class="admin-card p-6">
-                    <h2 class="text-[10px] font-black uppercase text-orange-500 mb-4 tracking-widest">Solicitações Pendentes</h2>
-                    <div id="tx-list" class="space-y-4"></div>
-                </div>
+        <div class="card-admin mb-6">
+            <h3 class="text-[11px] font-black uppercase mb-4 text-blue-400 italic">Gestão de Utilizador</h3>
+            <div class="flex gap-2">
+                <input type="tel" id="search-tel" placeholder="Contacto do Usuário" class="font-bold">
+                <button onclick="buscarUser()" class="bg-blue-600 px-6 rounded-lg shadow-lg"><i class="fas fa-search"></i></button>
             </div>
-            <div class="lg:col-span-4">
-                <div class="admin-card p-6 h-[75vh] flex flex-col">
-                    <h2 class="text-[10px] font-black uppercase text-slate-500 mb-4">Utilizadores</h2>
-                    <div id="user-list" class="overflow-y-auto space-y-1 flex-1 pr-2"></div>
+            
+            <div id="user-result" class="hidden mt-6 space-y-4 animate-pulse">
+                <div class="grid grid-cols-2 gap-3 text-[10px] bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                    <div><b class="opacity-40">SENHA:</b> <br><span id="u-pw" class="text-amber-400 font-black">---</span></div>
+                    <div><b class="opacity-40">SALDO:</b> <br><span id="u-saldo" class="text-green-400 font-black">0.00 KZ</span></div>
+                    <div><b class="opacity-40">CONVITES:</b> <br><span id="u-conv" class="font-black">0</span></div>
+                    <div><b class="opacity-40">STATUS:</b> <br><span id="u-status" class="text-blue-400 font-black italic uppercase">Ativo</span></div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="acaoUser('senha')" class="btn-acao bg-slate-700 p-3 rounded-lg">Mudar Senha</button>
+                    <button onclick="acaoUser('add')" class="btn-acao bg-green-600/20 text-green-400 p-3 rounded-lg">Add Saldo</button>
+                    <button onclick="acaoUser('rem')" class="btn-acao bg-red-600/20 text-red-400 p-3 rounded-lg">Tirar Saldo</button>
+                    <button onclick="acaoUser('ban')" class="btn-acao bg-red-600 p-3 rounded-lg text-white">Banir/Apagar</button>
+                </div>
+                
+                <div class="p-3 bg-black/20 rounded-lg">
+                    <p class="text-[9px] font-black opacity-30 mb-1 uppercase">Extrato do Usuário</p>
+                    <div id="u-extrato" class="max-h-32 overflow-y-auto text-[9px] space-y-1"></div>
                 </div>
             </div>
         </div>
+
+        <h3 class="text-[11px] font-black uppercase mb-3 text-amber-500 italic"><i class="fas fa-clock mr-2"></i>Pedidos de Saque e Depósito</h3>
+        <div id="lista-pendentes" class="space-y-4"></div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, get, update, onValue, remove, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, getDocs, updateDoc, deleteDoc, collection } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyC3SurEz7aLcHG4yBUq5zrGBPOb2mvLpZ4",
-            authDomain: "fir-6e9ec.firebaseapp.com",
-            databaseURL: "https://fir-6e9ec-default-rtdb.firebaseio.com",
-            projectId: "fir-6e9ec",
-            storageBucket: "fir-6e9ec.firebasestorage.app",
-            messagingSenderId: "579697818964",
-            appId: "1:579697818964:web:aad151fcbe3989df431cc1"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyA03WW6zrf79PsZY6KvaxGRsGFY1AEFCYs",
+        authDomain: "fir-b8708.firebaseapp.com",
+        projectId: "fir-b8708",
+        storageBucket: "fir-b8708.firebasestorage.app",
+        messagingSenderId: "174524990208",
+        appId: "1:174524990208:web:eb08738fdd7cd1cd98a9e5"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        let allUsers = {};
-        let selectedUser = "";
+    // SEGURANÇA
+    window.autenticar = () => {
+        if(document.getElementById('admin-key').value === "ABS..943") {
+            document.getElementById('lock-screen').style.display = 'none';
+            document.getElementById('admin-content').classList.remove('hidden');
+            carregarDashboard();
+        } else { alert("CHAVE DE ACESSO INVÁLIDA!"); }
+    };
 
-        window.validateAccess = () => {
-            if(document.getElementById("admin-key-input").value === "ABS..943") {
-                document.getElementById("lock-screen").style.display = "none";
-                document.getElementById("main-content").classList.remove("hidden");
-            } else showNotify("CHAVE INCORRETA", "#ef4444");
-        };
-
-        window.showNotify = (msg, color = "#f97316") => {
-            const container = document.getElementById("toast-container");
-            const toast = document.createElement("div");
-            toast.className = "toast";
-            toast.style.borderLeftColor = color;
-            toast.innerText = msg;
-            container.appendChild(toast);
-            setTimeout(() => toast.remove(), 4000);
-        };
-
-        window.openImg = (src) => {
-            document.getElementById("img-full").src = src;
-            document.getElementById("img-modal").style.display = "flex";
-        };
-
-        window.closeUserModal = () => document.getElementById("user-modal").style.display = "none";
-
-        window.openUserModal = (phone) => {
-            selectedUser = phone;
-            const u = allUsers[phone];
-            const refs = Object.values(allUsers).filter(x => x.invitedBy === phone).length;
-            document.getElementById("m-user-phone").innerText = phone;
-            document.getElementById("m-user-ref").innerText = `Convidados: ${refs} pessoas`;
-            document.getElementById("m-new-pass").value = u.pass;
-            document.getElementById("user-modal").style.display = "flex";
-            const btnBan = document.getElementById("btn-ban");
-            if(u.banned) { 
-                btnBan.innerText = "Desbloquear Conta"; 
-                btnBan.className = "w-full py-4 rounded-2xl font-black text-[10px] uppercase bg-emerald-600 text-white"; 
-            } else { 
-                btnBan.innerText = "Bloquear Acesso"; 
-                btnBan.className = "w-full py-4 rounded-2xl font-black text-[10px] uppercase bg-zinc-800 text-zinc-400"; 
-            }
-        };
-
-        window.updateUserField = async (field) => {
-            const val = document.getElementById("m-new-pass").value;
-            await update(ref(db, `users/${selectedUser}`), { [field]: val });
-            showNotify("DADOS ATUALIZADOS");
-        };
-
-        window.adjustBalance = async (type) => {
-            const amount = parseFloat(prompt("Insira o valor em Kwanza:"));
-            if(!amount) return;
-            const current = allUsers[selectedUser].balance || 0;
-            const newBal = type === 'add' ? current + amount : current - amount;
-            await update(ref(db, `users/${selectedUser}`), { balance: newBal });
-            showNotify("SALDO ATUALIZADO");
-            closeUserModal();
-        };
-
-        window.toggleBan = async () => {
-            const isBanned = allUsers[selectedUser].banned || false;
-            await update(ref(db, `users/${selectedUser}`), { banned: !isBanned });
-            showNotify(isBanned ? "UTILIZADOR DESBLOQUEADO" : "UTILIZADOR BANIDO");
-            closeUserModal();
-        };
-
-        window.deleteAccount = async () => {
-            if(confirm("Deseja ELIMINAR este registro permanentemente?")) {
-                await remove(ref(db, `users/${selectedUser}`));
-                showNotify("CONTA ELIMINADA", "#ef4444");
-                closeUserModal();
-            }
-        };
-
-        window.processTx = async (id, phone, valor, status, tipo) => {
-            const uRef = ref(db, `users/${phone}`);
-            const txRef = ref(db, `transactions/${id}`);
-            const uSnap = await get(uRef);
-            
-            if(uSnap.exists()){
-                const currentBal = uSnap.val().balance || 0;
-                if(tipo === "DEPÓSITO" && status === "APROVADO") await update(uRef, { balance: currentBal + valor });
-                if(tipo === "SAQUE" && status === "RECUSADO") await update(uRef, { balance: currentBal + valor });
-                await update(txRef, { status: status });
-                showNotify(`${tipo} ${status}`);
-            }
-        };
-
-        document.getElementById("btn-cleanup").onclick = async () => {
-            if(confirm("Deseja apagar transações concluídas?")) {
-                const snap = await get(ref(db, "transactions"));
-                if(snap.exists()){
-                    const data = snap.val();
-                    const updates = {};
-                    let c = 0;
-                    Object.keys(data).forEach(k => { if(data[k].status !== "PENDENTE") { updates[k] = null; c++; }});
-                    if(c > 0) { await update(ref(db, "transactions"), updates); showNotify(`${c} LIMPOS`); }
-                }
-            }
-        };
-
-        onValue(ref(db, "users"), (snap) => {
-            if(snap.exists()) {
-                allUsers = snap.val();
-                renderUsers();
-                document.getElementById("stat-total").innerText = `Total: ${Object.keys(allUsers).length} utilizadores`;
-            }
-        });
-
-        const renderUsers = (filter = "") => {
-            const list = document.getElementById("user-list");
-            list.innerHTML = "";
-            Object.keys(allUsers).sort().forEach(phone => {
-                if(filter && !phone.includes(filter)) return;
-                const u = allUsers[phone];
-                const div = document.createElement("div");
-                div.className = "user-row p-4 rounded-xl flex justify-between items-center";
-                div.onclick = () => openUserModal(phone);
-                div.innerHTML = `<div><p class="text-[11px] font-black">${phone}</p><p class="text-[8px] text-slate-500 uppercase">${u.banned?'BLOQUEADO':'ATIVO'}</p></div><p class="font-black text-orange-500 text-xs">${(u.balance||0).toFixed(2)} Kz</p>`;
-                list.appendChild(div);
-            });
-        };
-
-        // OTIMIZAÇÃO: Escuta apenas as últimas 50 transações para evitar lentidão
-        const txQuery = query(ref(db, "transactions"), limitToLast(50));
+    // DASHBOARD
+    async function carregarDashboard() {
+        const snap = await getDocs(collection(db, "usuarios"));
+        document.getElementById('total-users').innerText = snap.size;
         
-        onValue(txQuery, (snap) => {
-            const box = document.getElementById("tx-list");
-            box.innerHTML = "";
-            if(snap.exists()){
-                const txs = snap.val();
-                // Reverter para mostrar os mais novos primeiro
-                Object.keys(txs).reverse().forEach(id => {
-                    const t = txs[id];
-                    if(t.status !== "PENDENTE") return;
-                    
-                    const card = document.createElement("div");
-                    card.className = "bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row justify-between items-center mb-4 gap-4 animate-pulse";
-                    
-                    // Remover animação de pulso após meio segundo para dar sensação de velocidade
-                    setTimeout(() => card.classList.remove('animate-pulse'), 500);
-
-                    if(t.tipo === "DEPÓSITO") {
-                        card.innerHTML = `
-                            <div class="flex items-center gap-4 w-full">
-                                <img src="${t.comprovante}" class="img-preview" loading="lazy" onclick="openImg('${t.comprovante}')">
-                                <div>
-                                    <p class="text-[10px] font-black text-slate-500 uppercase">DEPÓSITO: ${t.user}</p>
-                                    <p class="text-xl font-black text-emerald-400">${t.valor.toFixed(2)} Kz</p>
-                                    <p class="text-[8px] text-slate-600">${t.data}</p>
-                                </div>
-                            </div>
-                            <div class="flex gap-2 w-full md:w-auto">
-                                <button onclick="processTx('${id}', '${t.user}', ${t.valor}, 'APROVADO', 'DEPÓSITO')" class="flex-1 md:flex-none bg-emerald-600 px-6 py-3 rounded-xl text-[9px] font-black uppercase text-white">Aprovar</button>
-                                <button onclick="processTx('${id}', '${t.user}', 0, 'RECUSADO', 'DEPÓSITO')" class="flex-1 md:flex-none bg-slate-800 px-6 py-3 rounded-xl text-[9px] font-black uppercase text-red-500">Recusar</button>
-                            </div>`;
-                    } else {
-                        card.innerHTML = `
-                            <div class="w-full">
-                                <p class="text-[10px] font-black text-slate-500 uppercase">SAQUE: ${t.user}</p>
-                                <p class="text-xl font-black text-red-500">${t.valor.toFixed(2)} Kz</p>
-                                <div class="iban-badge mt-2"><i class="fa-solid fa-bank"></i> <span>IBAN: ${t.iban || 'NÃO INFORMADO'}</span></div>
-                                <p class="text-[8px] text-slate-600 mt-1">${t.data}</p>
-                            </div>
-                            <div class="flex gap-2 w-full md:w-auto">
-                                <button onclick="processTx('${id}', '${t.user}', 0, 'PAGO', 'SAQUE')" class="flex-1 md:flex-none bg-white text-black px-6 py-3 rounded-xl text-[9px] font-black uppercase">Marcar Pago</button>
-                                <button onclick="processTx('${id}', '${t.user}', ${t.valor}, 'RECUSADO', 'SAQUE')" class="flex-1 md:flex-none bg-red-600/20 text-red-500 px-6 py-3 rounded-xl text-[9px] font-black uppercase">Recusar</button>
-                            </div>`;
-                    }
-                    box.appendChild(card);
-                });
-            } else {
-                box.innerHTML = `<p class="text-center text-slate-600 text-[10px] py-10">NENHUMA SOLICITAÇÃO PENDENTE</p>`;
-            }
+        const area = document.getElementById('lista-pendentes');
+        area.innerHTML = "";
+        
+        snap.forEach(userDoc => {
+            const u = userDoc.data();
+            const tel = userDoc.id;
+            (u.extrato || []).forEach((ex, idx) => {
+                if(ex.status === "análise" || ex.status === "pendente") {
+                    const div = document.createElement('div');
+                    div.className = "card-admin border-l-4 " + (ex.tipo === 'dep' ? 'border-green-500' : 'border-amber-500');
+                    div.innerHTML = `
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="text-[10px] font-black uppercase">${ex.tipo === 'dep' ? 'Depósito' : 'Saque'}</span>
+                            <span class="text-[9px] opacity-40">${ex.data}</span>
+                        </div>
+                        <div class="mb-4">
+                            <b class="text-lg font-black">${ex.valor} KZ</b><br>
+                            <small class="text-[10px] font-bold opacity-70">Usuário: ${tel}</small>
+                        </div>
+                        ${ex.tipo === 'saq' ? `<div class="bg-black/30 p-3 rounded-lg mb-4 text-[9px] font-mono"><b>IBAN:</b> ${u.iban}<br><b>NOME:</b> ${u.titular}</div>` : ''}
+                        <div class="flex gap-2">
+                            <button onclick="processar('${tel}', ${idx}, 'aprovado')" class="flex-1 bg-green-600 py-2 rounded text-[9px] font-black uppercase">Aprovar</button>
+                            <button onclick="processar('${tel}', ${idx}, 'recusado')" class="flex-1 bg-red-600 py-2 rounded text-[9px] font-black uppercase">Recusar</button>
+                            ${ex.comprovante ? `<button onclick="verImg('${ex.comprovante}')" class="bg-blue-600 px-4 py-2 rounded text-[9px] font-black uppercase italic"><i class="fas fa-image"></i></button>` : ''}
+                        </div>
+                    `;
+                    area.appendChild(div);
+                }
+            });
         });
+    }
 
-        document.getElementById("search-input").oninput = (e) => renderUsers(e.target.value.trim());
-    </script>
+    // BUSCA E GESTÃO
+    window.buscarUser = async () => {
+        const tel = document.getElementById('search-tel').value;
+        const s = await getDoc(doc(db, "usuarios", tel));
+        if(!s.exists()) return alert("USUÁRIO NÃO EXISTE");
+        
+        const u = s.data();
+        const res = document.getElementById('user-result');
+        res.classList.remove('hidden');
+        res.classList.remove('animate-pulse');
+        
+        document.getElementById('u-pw').innerText = u.pw;
+        document.getElementById('u-saldo').innerText = (u.saldo || 0).toFixed(2) + " KZ";
+        document.getElementById('u-conv').innerText = u.convidados || 0;
+        
+        const extArea = document.getElementById('u-extrato');
+        extArea.innerHTML = u.extrato.map(e => `<div>[${e.data}] ${e.valor} - ${e.desc}</div>`).join('');
+    };
+
+    window.acaoUser = async (tipo) => {
+        const tel = document.getElementById('search-tel').value;
+        const ref = doc(db, "usuarios", tel);
+        const s = (await getDoc(ref)).data();
+        
+        if(tipo === 'senha') {
+            const n = prompt("Nova Senha:");
+            if(n) await updateDoc(ref, { pw: n });
+        } else if (tipo === 'add' || tipo === 'rem') {
+            const v = parseFloat(prompt("Valor:"));
+            if(v) await updateDoc(ref, { saldo: tipo === 'add' ? s.saldo + v : s.saldo - v });
+        } else if (tipo === 'ban') {
+            if(confirm("APAGAR CONTA DEFINITIVAMENTE?")) await deleteDoc(ref);
+        }
+        alert("CONCLUÍDO!"); buscarUser();
+    };
+
+    // PROCESSAR PEDIDOS
+    window.processar = async (tel, idx, status) => {
+        const ref = doc(db, "usuarios", tel);
+        const u = (await getDoc(ref)).data();
+        let lista = [...u.extrato];
+        let item = lista[idx];
+        
+        item.status = status;
+        
+        // Se aprovar depósito, o saldo sobe automaticamente
+        if(status === 'aprovado' && item.tipo === 'dep') {
+            await updateDoc(ref, { saldo: u.saldo + parseFloat(item.valor), extrato: lista });
+        } else {
+            await updateDoc(ref, { extrato: lista });
+        }
+        
+        alert("STATUS ATUALIZADO!");
+        carregarDashboard();
+    };
+
+    // VISUALIZADOR
+    window.verImg = (data) => {
+        document.getElementById('img-full').src = data;
+        document.getElementById('modal-img').style.display = 'flex';
+    };
+    window.fecharModal = () => document.getElementById('modal-img').style.display = 'none';
+
+    window.limparCache = () => { localStorage.clear(); location.reload(); };
+
+    window.autenticar = autenticar;
+</script>
 </body>
-</html>
+                        </html>
